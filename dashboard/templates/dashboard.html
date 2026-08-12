@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+
+  <!-- 1. WELCOME -->
+  <div class="hero">
+    <div>
+      <h2>Welcome back, {{ applicant_name|default:"Applicant" }}</h2>
+      <p>Pick up where you left off — complete every section below before the deadline to keep your application on track.</p>
+    </div>
+    <div class="deadline-chip">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      Application deadline: {{ application_deadline|default:"Aug 30, 2026" }}
+    </div>
+  </div>
+
+  <div class="grid grid-2" style="margin-bottom:20px;">
+
+    <!-- 2. APPLICATION PROGRESS -->
+    <div class="card card-pad progress-card">
+      <div class="ring" data-percent="{{ progress_percent|default:40 }}">
+        <div class="ring-inner">
+          <span class="num" data-count-to="{{ progress_percent|default:40 }}">0%</span>
+          <span class="lbl">complete</span>
+        </div>
+      </div>
+      <div class="progress-meta">
+        <div class="section-title" style="margin-bottom:2px;">Application Progress</div>
+        <div class="count">{{ sections_completed|default:2 }} of {{ sections_total|default:5 }} sections completed</div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" data-percent="{{ progress_percent|default:40 }}" style="width:0%;"></div>
+        </div>
+        <a href="{% url 'my_application' %}" class="btn btn-primary">
+          {{ primary_action|default:"Continue Application" }}
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- 4. APPLICATION STATUS (compact) + status stepper -->
+    <div class="card card-pad">
+      <div class="section-title">Application Status</div>
+      <p class="section-sub">
+        Current status:
+        <span class="status-badge status--{{ status_key|default:'inprogress' }}">{{ status_label|default:"In Progress" }}</span>
+      </p>
+      <div class="timeline">
+        {% for step in status_timeline %}
+          <div class="tl-step {% if step.done %}done{% endif %} {% if step.current %}current{% endif %}">
+            <div class="tl-line"></div>
+            <div class="tl-dot">
+              {% if step.done %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
+              {% endif %}
+            </div>
+            <div class="tl-label">{{ step.label }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-2" style="margin-bottom:20px;">
+
+    <!-- 3. APPLICATION CHECKLIST -->
+    <div class="card card-pad">
+      <div class="section-title">Application Checklist</div>
+      <p class="section-sub">What's next in your application</p>
+      <div class="checklist">
+        {% for item in checklist %}
+          <div class="checklist-row">
+            <div class="checklist-left">
+              <div class="check-dot status--{{ item.status_key }}" style="background:transparent;">
+                {% if item.status_key == 'completed' %}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="3" style="background:var(--ok-soft); border-radius:50%; padding:5px; width:26px; height:26px; box-sizing:border-box;"><path d="M5 13l4 4L19 7"/></svg>
+                {% elif item.status_key == 'needscorrection' %}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2.5" style="background:var(--danger-soft); border-radius:50%; padding:5px; width:26px; height:26px; box-sizing:border-box;"><path d="M12 8v5M12 16h.01"/><circle cx="12" cy="12" r="9"/></svg>
+                {% else %}
+                  <span style="width:10px; height:10px; border-radius:50%; background:var(--s-300); display:inline-block;"></span>
+                {% endif %}
+              </div>
+              <span class="checklist-name">{{ item.name }}</span>
+            </div>
+            <span class="status-badge status--{{ item.status_key }}">{{ item.status_label }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- 5. IMPORTANT DATES -->
+    <div class="card card-pad">
+      <div class="section-title">Important Dates</div>
+      <p class="section-sub">Key deadlines for your application</p>
+      <div class="dates-list">
+        {% for d in important_dates %}
+          <div class="date-row {% if d.urgent %}date-row--urgent{% endif %}">
+            <div class="date-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 3v3M16 3v3"/></svg>
+            </div>
+            <div>
+              <div class="date-label">{{ d.label }}</div>
+              <div class="date-value">{{ d.value }}</div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-2" style="margin-bottom:20px;">
+
+    <!-- 6. REQUIRED DOCUMENTS SUMMARY -->
+    <div class="card card-pad">
+      <div class="section-title">Required Documents</div>
+      <p class="section-sub">Snapshot of your document uploads</p>
+      <div class="doc-stats">
+        <div class="doc-stat">
+          <div class="stat-number">{{ docs_uploaded|default:3 }}</div>
+          <div class="stat-label">Uploaded</div>
+        </div>
+        <div class="doc-stat doc-stat--warn">
+          <div class="stat-number">{{ docs_missing|default:2 }}</div>
+          <div class="stat-label">Missing</div>
+        </div>
+        <div class="doc-stat">
+          <div class="stat-number">{{ docs_pending|default:1 }}</div>
+          <div class="stat-label">Awaiting Verification</div>
+        </div>
+        <div class="doc-stat doc-stat--warn">
+          <div class="stat-number">{{ docs_correction|default:0 }}</div>
+          <div class="stat-label">Needs Correction</div>
+        </div>
+      </div>
+      <a href="{% url 'documents' %}" class="btn btn-outline">Manage Documents</a>
+    </div>
+
+    <!-- 7. IMPORTANT NOTICES -->
+    <div class="card card-pad">
+      <div class="section-title">Important Notices</div>
+      <p class="section-sub">Recent updates that need your attention</p>
+      <div>
+        {% for n in notices %}
+          <div class="notice">
+            <div class="notice-icon notice-icon--{{ n.type }}">
+              {% if n.type == 'danger' %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 3.9L2.6 17a1.8 1.8 0 0 0 1.6 2.7h15.6a1.8 1.8 0 0 0 1.6-2.7L13.7 3.9a1.8 1.8 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+              {% elif n.type == 'warn' %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+              {% else %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+              {% endif %}
+            </div>
+            <div>
+              <div class="notice-title">{{ n.title }}</div>
+              <div class="notice-meta">{{ n.meta }}</div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. HELP / ADMISSIONS -->
+  <div class="card card-pad">
+    <div class="section-title">Help / Admissions</div>
+    <p class="section-sub">Need a hand? Reach the admissions office directly.</p>
+    <div class="grid grid-3">
+      <a href="{% url 'help_contact' %}" class="help-link">Contact Admissions <span>→</span></a>
+      <a href="{% url 'help_contact' %}#faqs" class="help-link">FAQs <span>→</span></a>
+      <a href="{% url 'help_contact' %}#guidelines" class="help-link">Application Guidelines <span>→</span></a>
+    </div>
+  </div>
+
+{% endblock %}
