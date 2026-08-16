@@ -1,124 +1,173 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{% block title %}Applicant Portal{% endblock %} · GIKI</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-{% block extra_head %}{% endblock %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Applicant Portal{% endblock %} · GIKI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  {% block extra_head %}{% endblock %}
 </head>
+
 <body>
-<div class="portal" id="portal">
+  <div class="portal" id="portal">
 
-  <!-- ===================== SIDEBAR ===================== -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-brand">
-      <div class="logo-mark" aria-hidden="true">
-        <svg viewBox="0 0 40 40" width="26" height="26" fill="none">
-          <path d="M20 3 L35 11 V29 L20 37 L5 29 V11 Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
-          <path d="M20 11 L28 15.5 V24.5 L20 29 L12 24.5 V15.5 Z" fill="currentColor" opacity="0.9"/>
-        </svg>
-      </div>
-      <div class="brand-text">
-        <span class="brand-name">GIKI</span>
-        <span class="brand-sub">Applicant Portal</span>
-      </div>
-    </div>
-
-    <nav class="sidebar-nav" aria-label="Primary">
-      <a href="{% url 'dashboard' %}" class="nav-item {% if active_nav == 'dashboard' %}active{% endif %}">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
-        <span>Dashboard</span>
-      </a>
-      <a href="{% url 'my_application' %}" class="nav-item {% if active_nav == 'application' %}active{% endif %}">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
-        <span>My Application</span>
-      </a>
-      <a href="{% url 'documents' %}" class="nav-item {% if active_nav == 'documents' %}active{% endif %}">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h11l5 5v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><path d="M14 4v5h5"/></svg>
-        <span>Documents</span>
-      </a>
-      <a href="{% url 'my_profile' %}" class="nav-item {% if active_nav == 'profile' %}active{% endif %}">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1.2-3.6 4-5.5 7-5.5s5.8 1.9 7 5.5"/></svg>
-        <span>My Profile</span>
-      </a>
-      <a href="{% url 'application_status' %}" class="nav-item {% if active_nav == 'status' %}active{% endif %}">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
-        <span>Application Status</span>
-      </a>
-
-      <div class="nav-divider"></div>
-
-      <a href="{% url 'settings' %}" class="nav-item {% if active_nav == 'settings' %}active{% endif %}">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
-        <span>Settings</span>
-      </a>
-      <a href="{% url 'help_contact' %}" class="nav-item {% if active_nav == 'help' %}active{% endif %}">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.9.4-1.5 1-1.5 2.2"/><circle cx="12" cy="17" r="0.6" fill="currentColor"/></svg>
-        <span>Help / Contact Admissions</span>
-      </a>
-    </nav>
-
-    <div class="sidebar-footer">
-      <form action="{% url 'logout' %}" method="post">
-        {% csrf_token %}
-        <button type="submit" class="nav-item nav-item--logout">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
-          <span>Logout</span>
-        </button>
-      </form>
-    </div>
-  </aside>
-
-  <div class="sidebar-scrim" id="sidebarScrim"></div>
-
-  <!-- ===================== MAIN COLUMN ===================== -->
-  <div class="main">
-    <header class="topbar">
-      <button class="icon-btn sidebar-toggle" id="sidebarToggle" aria-label="Toggle menu">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-      </button>
-
-      <h1 class="topbar-title">{% block page_title %}Dashboard{% endblock %}</h1>
-
-      <div class="topbar-actions">
-        <button class="icon-btn" aria-label="Notifications">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
-          {% if notification_count %}<span class="badge-dot">{{ notification_count }}</span>{% endif %}
-        </button>
-
-        <div class="topbar-divider"></div>
-
-        <div class="profile-menu">
-          <button class="profile-trigger" id="profileTrigger">
-            <span class="avatar">{{ applicant_initials|default:"AA" }}</span>
-            <span class="profile-name">{{ applicant_name|default:"Applicant" }}</span>
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-          </button>
-          <div class="profile-dropdown" id="profileDropdown">
-            <a href="{% url 'my_profile' %}">My Profile</a>
-            <a href="{% url 'settings' %}">Settings</a>
-            <div class="nav-divider"></div>
-            <form action="{% url 'logout' %}" method="post">
-              {% csrf_token %}
-              <button type="submit">Logout</button>
-            </form>
-          </div>
+    <!-- ===================== SIDEBAR ===================== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <img class="logo-mark" src="{% static 'images/giki.png' %}" alt="GIKI logo">
+        <div class="brand-text">
+          <span class="brand-name">GIKI</span>
+          <span class="brand-sub">Applicant Portal</span>
         </div>
       </div>
-    </header>
 
-    <main class="content">
-      {% block content %}{% endblock %}
-    </main>
+      <nav class="sidebar-nav" aria-label="Primary">
+        <a href="{% url 'dashboard' %}" class="nav-item {% if active_nav == 'dashboard' %}active{% endif %}">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="3" y="3" width="7" height="9" rx="1.5" />
+            <rect x="14" y="3" width="7" height="5" rx="1.5" />
+            <rect x="14" y="12" width="7" height="9" rx="1.5" />
+            <rect x="3" y="16" width="7" height="5" rx="1.5" />
+          </svg>
+          <span>Dashboard</span>
+        </a>
+        <button class="nav-item application-toggle {% if active_nav == 'application' %}active{% endif %}" type="button"
+          aria-expanded="{% if active_nav == 'application' %}true{% else %}false{% endif %}"
+          aria-controls="applicationSubnav">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+            <path d="M14 3v5h5" />
+            <path d="M9 13h6M9 17h6" />
+          </svg>
+          <span>My Application</span>
+          <svg class="nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </button>
+        <div class="application-subnav {% if active_nav == 'application' %}open{% endif %}" id="applicationSubnav">
+          <a href="{% url 'my_application' %}" class="subnav-item">Application Overview</a>
+          <a href="{% url 'step_personal_information' %}" class="subnav-item">Personal Info</a>
+          <a href="{% url 'step_contact_address' %}" class="subnav-item">Address &amp; Contact Info</a>
+          <a href="{% url 'step_guardian_information' %}" class="subnav-item">Guardian Info</a>
+          <a href="{% url 'step_academic_information' %}" class="subnav-item">Previous Education</a>
+          <a href="{% url 'documents' %}" class="subnav-item">Upload Documents</a>
+        </div>
+        <a href="{% url 'my_profile' %}" class="nav-item {% if active_nav == 'profile' %}active{% endif %}">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="8" r="3.5" />
+            <path d="M5 20c1.2-3.6 4-5.5 7-5.5s5.8 1.9 7 5.5" />
+          </svg>
+          <span>My Profile</span>
+        </a>
+        <a href="{% url 'application_status' %}" class="nav-item {% if active_nav == 'status' %}active{% endif %}">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 7v5l3.5 2" />
+          </svg>
+          <span>Application Status</span>
+        </a>
+
+        <div class="nav-divider"></div>
+
+        <a href="{% url 'settings' %}" class="nav-item {% if active_nav == 'settings' %}active{% endif %}">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z" />
+          </svg>
+          <span>Settings</span>
+        </a>
+        <a href="{% url 'help_contact' %}" class="nav-item {% if active_nav == 'help' %}active{% endif %}">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.9.4-1.5 1-1.5 2.2" />
+            <circle cx="12" cy="17" r="0.6" fill="currentColor" />
+          </svg>
+          <span>Help / Contact Admissions</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <form action="{% url 'logout' %}" method="post">
+          {% csrf_token %}
+          <button type="submit" class="nav-item nav-item--logout">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <path d="M16 17l5-5-5-5" />
+              <path d="M21 12H9" />
+            </svg>
+            <span>Logout</span>
+          </button>
+        </form>
+      </div>
+    </aside>
+
+    <div class="sidebar-scrim" id="sidebarScrim"></div>
+
+    <!-- ===================== MAIN COLUMN ===================== -->
+    <div class="main">
+      <header class="topbar">
+        <span class="topbar-context">Welcome back</span>
+
+        <div class="topbar-actions">
+          <button class="icon-btn" aria-label="Notifications">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.7 21a2 2 0 0 1-3.4 0" />
+            </svg>
+            {% if notification_count %}<span class="badge-dot">{{ notification_count }}</span>{% endif %}
+          </button>
+
+          <div class="topbar-divider"></div>
+
+          <div class="profile-menu">
+            <button class="profile-trigger" id="profileTrigger">
+              <span class="avatar">
+                {% if applicant_initials %}{{ applicant_initials }}{% else %}{{ request.user.username|slice:":2"|upper }}{% endif %}
+              </span>
+              <span class="profile-name">
+                {% if applicant_name %}{{ applicant_name }}{% elif request.user.get_full_name %}{{ request.user.get_full_name }}{% else %}{{ request.user.username }}{% endif %}
+              </span>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </button>
+            <div class="profile-dropdown" id="profileDropdown">
+              <a href="{% url 'my_profile' %}">My Profile</a>
+              <a href="{% url 'settings' %}">Settings</a>
+              <div class="nav-divider"></div>
+              <form action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit">Logout</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="content">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
   </div>
-</div>
 
-<script src="{% static 'js/dashboard.js' %}"></script>
-{% block extra_scripts %}{% endblock %}
+  <div class="page-loader" id="pageLoader" aria-live="polite" aria-label="Loading" hidden>
+    <div class="page-loader-card">
+      <img class="giki-loader" src="{% static 'images/giki.png' %}" alt="">
+      <span>Processing, please wait…</span>
+    </div>
+  </div>
+
+  <script src="{% static 'js/dashboard.js' %}"></script>
+  {% block extra_scripts %}{% endblock %}
 </body>
+
 </html>

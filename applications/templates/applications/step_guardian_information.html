@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Guardian Information{% endblock %}{% block page_title %}Guardian Information{% endblock %}
+{% block content %}
+<div class="page-intro">
+    <div>
+        <h2>Guardian information</h2>
+        <p>Provide the details of a parent or legal guardian.</p>
+    </div>
+</div>
+<form class="card form-card">
+    <div class="form-section">
+        <h3>Guardian details</h3>
+        <div class="field-grid">
+            <div class="field"><label>Full name</label><input value="{{ application.guardian_name }}"></div>
+            <div class="field"><label>Relationship</label><input value="{{ application.guardian_relationship }}"></div>
+            <div class="field"><label>CNIC number</label><input value="{{ application.guardian_cnic }}"></div>
+            <div class="field"><label>Occupation</label><input value="{{ application.guardian_occupation }}"></div>
+            <div class="field"><label>Phone number</label><input value="{{ application.guardian_phone }}"></div>
+            <div class="field"><label>Email address</label><input type="email" value="{{ application.guardian_email }}">
+            </div>
+            <div class="field field--full"><label>Address</label><textarea>{{ application.guardian_address }}</textarea>
+            </div>
+        </div>
+    </div>
+    <div class="form-actions"><a class="btn btn-outline" href="{% url 'step_contact_address' %}">Back</a><a
+            class="btn btn-primary" href="{% url 'step_academic_information' %}">Save &amp; continue</a></div>
+</form>
+{% endblock %}
