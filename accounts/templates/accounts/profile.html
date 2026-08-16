@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}My Profile{% endblock %}{% block page_title %}My Profile{% endblock %}
+{% block content %}<div class="page-intro">
+    <div>
+        <h2>My profile</h2>
+        <p>Your personal account details for the applicant portal.</p>
+    </div>
+</div>
+<section class="card form-card">
+    <div class="profile-summary">{% if application.student_photo %}<div class="profile-photo-display"><img
+                src="data:{{ application.student_photo_type }};base64,{{ application.student_photo }}"
+                alt="{{ request.user.get_full_name|default:request.user.username }}"></div>
+        <div>
+            <h3>Your student photo</h3>
+            <p>Uploaded with your application.</p>
+        </div>{% else %}<form method="post" enctype="multipart/form-data" class="profile-photo-upload">
+            {% csrf_token %}
+            <label class="profile-photo-display profile-photo-display--upload" for="profileStudentPhoto"><svg
+                    viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle cx="12" cy="8" r="4" />
+                    <path d="M4 20c0-3.7 3.6-6.5 8-6.5s8 2.8 8 6.5" />
+                </svg><span>Upload</span></label><input id="profileStudentPhoto" type="file" name="student_photo"
+                accept="image/*" required>
+            <div>
+                <h3>Add your student photo</h3>
+                <p>Click the circle to select a clear, passport-size photo.</p>{% if photo_error %}<p
+                    class="field-error">{{ photo_error }}</p>{% endif %}
+            </div>
+        </form>{% endif %}
+    </div>
+    <div class="form-section">
+        <h3>Account details</h3>
+        <div class="field-grid">
+            <div class="field"><label>First name</label><input value="{{ request.user.first_name }}" readonly></div>
+            <div class="field"><label>Last name</label><input value="{{ request.user.last_name }}" readonly></div>
+            <div class="field"><label>Email address</label><input value="{{ request.user.email }}" readonly></div>
+            <div class="field"><label>Phone number</label><input value="{{ application.phone|default:profile.phone }}"
+                    readonly></div>
+        </div>
+    </div>
+</section>{% endblock %}
+{% block extra_scripts %}
+<script>const profileStudentPhoto = document.getElementById("profileStudentPhoto"); if (profileStudentPhoto) { profileStudentPhoto.addEventListener("change", () => { if (profileStudentPhoto.files.length) profileStudentPhoto.form.requestSubmit(); }); }</script>
+{% endblock %}

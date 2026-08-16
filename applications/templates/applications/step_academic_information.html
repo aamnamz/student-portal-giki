@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Previous Education{% endblock %}{% block page_title %}Previous Education{% endblock %}
+{% block content %}
+<div class="page-intro">
+    <div>
+        <h2>Previous education</h2>
+        <p>Add your matric/O-Level and intermediate/A-Level academic record.</p>
+    </div>
+</div>
+<form class="card form-card">
+    <div class="form-section">
+        <h3>Matric / O-Level</h3>
+        <div class="field-grid">
+            <div class="field field--full"><label>Board</label><input value="{{ application.matric_board }}"></div>
+            <div class="field"><label>Passing year</label><input type="number"
+                    value="{{ application.matric_year|default_if_none:'' }}"></div>
+            <div class="field"><label>Obtained marks</label><input type="number"
+                    value="{{ application.matric_marks|default_if_none:'' }}"></div>
+            <div class="field"><label>Total marks</label><input type="number"
+                    value="{{ application.matric_total_marks|default_if_none:'' }}"></div>
+        </div>
+    </div>
+    <div class="form-section">
+        <h3>Intermediate / A-Level</h3>
+        <div class="field-grid">
+            <div class="field field--full"><label>Board</label><input value="{{ application.intermediate_board }}">
+            </div>
+            <div class="field"><label>Passing year</label><input type="number"
+                    value="{{ application.intermediate_year|default_if_none:'' }}"></div>
+            <div class="field"><label>Obtained marks</label><input type="number"
+                    value="{{ application.intermediate_marks|default_if_none:'' }}"></div>
+            <div class="field"><label>Total marks</label><input type="number"
+                    value="{{ application.intermediate_total_marks|default_if_none:'' }}"></div>
+            <div class="field"><label>Entry test score</label><input value="{{ application.entry_test_score }}"></div>
+        </div>
+    </div>
+    <div class="form-actions"><a class="btn btn-outline" href="{% url 'step_guardian_information' %}">Back</a><a
+            class="btn btn-primary" href="{% url 'documents' %}">Save &amp; continue</a></div>
+</form>
+{% endblock %}

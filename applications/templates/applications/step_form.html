@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="page-intro">
+  <div>
+    <h2>{{ title }}</h2>
+    <p>{{ guidance }}</p>
+  </div>
+</div>
+<form class="card form-card needs-validation {% if form.is_bound %}was-validated{% endif %}" method="post" enctype="multipart/form-data" novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="invalid-feedback d-block">{{ form.non_field_errors }}</div>{% endif %}
+  {% if form.student_photo %}
+  <div class="student-photo-section">
+    <div class="profile-box">
+      <label for="{{ form.student_photo.id_for_label }}" class="id-photo-frame" id="photoFrame">
+        {% if form.instance.student_photo %}
+        <img id="preview" src="data:{{ form.instance.student_photo_type }};base64,{{ form.instance.student_photo }}"
+          alt="Current student photo">
+        {% else %}
+        <img id="preview" src="" alt="" hidden>
+        <svg class="avatar-fallback" id="avatarFallback" viewBox="0 0 24 24" fill="none"
+          xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6" />
+          <path d="M4 20c0-3.7 3.6-6.5 8-6.5s8 2.8 8 6.5" stroke="currentColor" stroke-width="1.6"
+            stroke-linecap="round" />
+        </svg>
+        {% endif %}
+        <span class="photo-overlay">Upload photo</span>
+      </label>
+      <div class="photo-file-input">{{ form.student_photo }}</div>
+      <p class="photo-caption">Passport-size photo <span class="required">*</span></p>
+      <div class="invalid-feedback" id="photoError" hidden></div>
+      {% for error in form.student_photo.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+      <div class="valid-feedback">Looks good!</div>
+    </div>
+    <aside class="photo-upload-help" aria-label="Photo upload instructions">
+      <div class="photo-upload-help-title">Before you upload</div>
+      <ul>
+        <li>Use a recent, clear, colour photo of yourself only.</li>
+        <li>Keep your full face visible and look generally toward the camera.</li>
+        <li>Use good light and stand close enough for your face to be clear.</li>
+        <li>Remove sunglasses, masks, and face coverings.</li>
+      </ul>
+    </aside>
+  </div>
+  {% endif %}
+  <div class="field-grid">
+    {% for field in form %}
+    {% if field.name != 'student_photo' %}
+    <div
+      class="field {% if field.name == 'present_address' or field.name == 'permanent_address' %}field--full{% endif %}">
+      <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span
+          class="required">*</span>{% endif %}</label>
+      {% if field.name == 'phone' %}
+      <div class="input-group has-validation">
+        <span class="input-group-text">+92</span>{{ field }}
+        {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+        <div class="invalid-feedback">Please provide a valid {{ field.label }}.</div>
+        <div class="valid-feedback">Looks good!</div>
+      </div>
+      {% else %}
+      {{ field }}
+      {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+      <div class="invalid-feedback">Please provide a valid {{ field.label }}.</div>
+      <div class="valid-feedback">Looks good!</div>
+      {% endif %}
+    </div>
+    {% endif %}
+    {% endfor %}
+  </div>
+  <div class="form-actions"><a class="btn btn-outline" href="{% url 'my_application' %}">Cancel</a><button
+      class="btn btn-primary" type="submit">Save &amp; Next</button></div>
+</form>
+{% endblock %}
+{% block extra_scripts %}
+<script>
+  document.querySelectorAll("form.needs-validation").forEach((form) => {
+    form.addEventListener("submit", (event) => {
+      form.classList.add("was-validated");
+      if (!form.checkValidity()) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    });
+  });
+
+  document.querySelectorAll('input[name="cnic_or_bform"], input[name="guardian_cnic"]').forEach((input) => {
+    input.addEventListener("input", () => {
+      const digits = input.value.replace(/\D/g, "").slice(0, 13);
+      input.value = [digits.slice(0, 5), digits.slice(5, 12), digits.slice(12, 13)].filter(Boolean).join("-");
+    });
+  });
+
+  document.querySelectorAll('input[name="phone"], input[name="alternate_phone"], input[name="guardian_phone"], input[name="emergency_contact_number"]').forEach((input) => {
+    input.addEventListener("input", () => { input.value = input.value.replace(/\D/g, "").slice(0, 10); });
+  });
+
+  const intermediateResult = document.getElementById("id_intermediate_result");
+  const intermediateFields = ["intermediate_board", "intermediate_group", "intermediate_year", "intermediate_total_marks", "intermediate_marks", "intermediate_grade"]
+    .map((name) => document.getElementById(`id_${name}`)).filter(Boolean);
+  function updateIntermediateRequirements() {
+    if (!intermediateResult) return;
+    const awaited = intermediateResult.value === "awaited";
+    intermediateFields.forEach((field) => {
+      field.required = !awaited;
+      field.setCustomValidity("");
+      field.classList.remove("is-valid", "is-invalid");
+    });
+  }
+  if (intermediateResult) {
+    intermediateResult.addEventListener("change", updateIntermediateRequirements);
+    updateIntermediateRequirements();
+  }
+
+  const photoInput = document.getElementById("{{ form.student_photo.id_for_label }}");
+  const photoPreview = document.getElementById("preview");
+  const avatarFallback = document.getElementById("avatarFallback");
+  const photoError = document.getElementById("photoError");
+  const submitButtons = document.querySelectorAll('button[type="submit"]');
+  const photoValidationUrl = "{% url 'validate_photo_api' %}";
+  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+  function setPhotoError(message) {
+    photoError.textContent = message || "";
+    photoError.hidden = !message;
+    photoError.classList.toggle("d-block", Boolean(message));
+  }
+
+  function resetPhoto() {
+    photoInput.value = "";
+    photoPreview.src = "";
+    photoPreview.hidden = true;
+    if (avatarFallback) avatarFallback.hidden = false;
+  }
+
+  if (photoInput) {
+    photoInput.addEventListener("change", async () => {
+      const [file] = photoInput.files;
+      if (!file) return;
+      submitButtons.forEach((button) => { button.disabled = true; });
+      setPhotoError("");
+      document.getElementById("pageLoader").hidden = false;
+      try {
+        const dataUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        const response = await fetch(photoValidationUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded", "X-CSRFToken": csrfToken },
+          body: new URLSearchParams({ image: dataUrl }),
+        });
+        const result = await response.json();
+        if (!response.ok || !result.valid) {
+          setPhotoError(result.message || "Photo could not be validated.");
+          resetPhoto();
+          return;
+        }
+        photoPreview.src = dataUrl;
+        photoPreview.hidden = false;
+        if (avatarFallback) avatarFallback.hidden = true;
+      } catch (error) {
+        setPhotoError("Photo validation could not be completed. Please try again.");
+        resetPhoto();
+      } finally {
+        document.getElementById("pageLoader").hidden = true;
+        submitButtons.forEach((button) => { button.disabled = false; });
+      }
+    });
+  }
+</script>
+{% endblock %}
