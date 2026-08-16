@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Application Status{% endblock %}{% block page_title %}Application Status{% endblock %}
+{% block content %}<div class="page-intro">
+    <div>
+        <h2>Application status</h2>
+        <p>Track the journey of your application from registration to decision.</p>
+    </div><span class="status-badge status--{{ application.status|cut:'_' }}">{{ application.get_status_display}}</span>
+</div>
+<section class="card card-pad">
+    <div class="timeline">{% for step in status_timeline %}<div
+            class="tl-step {% if step.done %}done{% endif %} {% if step.current %}current{% endif %}">
+            <div class="tl-line"></div>
+            <div class="tl-dot">{% if step.done %}✓{% endif %}</div>
+            <div class="tl-label">{{ step.label }}</div>
+        </div>{% endfor %}</div>
+</section>
+{% endblock %}

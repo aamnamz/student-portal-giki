@@ -5,6 +5,7 @@ __pycache__/
 
 # Virtual environments
 venv/
+.env/
 env/
 .venv/
 ai_env/
@@ -29,3 +30,37 @@ Thumbs.db
 # Python cache
 .pytest_cache/
 .mypy_cache/
+
+
+# =========================
+# Build / Distribution
+# =========================
+dist/
+build/
+*.egg-info/
+
+# =========================
+# IDE / Editors
+# =========================
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+desktop.ini
+
+# =========================
+# Temporary Files
+# =========================
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# =========================
+# Secrets / Certificates
+# =========================
+*.pem
+*.key
+*.crt

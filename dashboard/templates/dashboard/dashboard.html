@@ -7,7 +7,9 @@
   <!-- 1. WELCOME -->
   <div class="hero">
     <div>
-      <h2>Welcome back, {{ applicant_name|default:"Applicant" }}</h2>
+      <h2>{{ applicant_name|default:"Applicant" }}</h2>
+      <p class="applicant-email">{{ applicant_email|default:"Email not provided" }}</p>
+      <p class="today-date">{{ today|date:"l, F j, Y" }}</p>
       <p>Pick up where you left off — complete every section below before the deadline to keep your application on track.</p>
     </div>
     <div class="deadline-chip">
@@ -20,17 +22,17 @@
 
     <!-- 2. APPLICATION PROGRESS -->
     <div class="card card-pad progress-card">
-      <div class="ring" data-percent="{{ progress_percent|default:40 }}">
+      <div class="ring" data-percent="{{ progress_percent|default:0 }}">
         <div class="ring-inner">
-          <span class="num" data-count-to="{{ progress_percent|default:40 }}">0%</span>
+          <span class="num" data-count-to="{{ progress_percent|default:0 }}">0%</span>
           <span class="lbl">complete</span>
         </div>
       </div>
       <div class="progress-meta">
         <div class="section-title" style="margin-bottom:2px;">Application Progress</div>
-        <div class="count">{{ sections_completed|default:2 }} of {{ sections_total|default:5 }} sections completed</div>
+        <div class="count">{{ sections_completed|default:0 }} of {{ sections_total|default:6 }} sections completed</div>
         <div class="progress-bar-track">
-          <div class="progress-bar-fill" data-percent="{{ progress_percent|default:40 }}" style="width:0%;"></div>
+          <div class="progress-bar-fill" data-percent="{{ progress_percent|default:0 }}" style="width:0%;"></div>
         </div>
         <a href="{% url 'my_application' %}" class="btn btn-primary">
           {{ primary_action|default:"Continue Application" }}

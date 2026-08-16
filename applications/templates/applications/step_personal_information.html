@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Personal Information{% endblock %}{% block page_title %}Personal Information{% endblock %}
+{% block content %}
+<div class="page-intro">
+    <div>
+        <h2>Personal information</h2>
+        <p>Tell us about yourself exactly as shown on your official documents.</p>
+    </div><span class="status-badge status--{{ application.personal_info_status|cut:'_' }}">{{
+        application.get_personal_info_status_display }}</span>
+</div>
+<form class="card form-card">
+    <div class="form-section">
+        <h3>Identity details</h3>
+        <p>Required for admission verification.</p>
+        <div class="field-grid">
+            <div class="field field--full"><label>Full name</label><input value="{{ application.full_name }}"
+                    placeholder="Your full legal name"></div>
+            <div class="field"><label>Father's name</label><input value="{{ application.father_name }}"></div>
+            <div class="field"><label>CNIC / B-Form number</label><input value="{{ application.cnic_or_bform }}"></div>
+            <div class="field"><label>Date of birth</label><input type="date"
+                    value="{{ application.date_of_birth|date:'Y-m-d' }}"></div>
+            <div class="field"><label>Gender</label><select>
+                    <option>{{ application.get_gender_display|default:'Select gender' }}</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                </select></div>
+            <div class="field"><label>Nationality</label><input value="{{ application.nationality }}"></div>
+            <div class="field"><label>Religion</label><input value="{{ application.religion }}"></div>
+        </div>
+    </div>
+    <div class="form-actions"><a class="btn btn-outline" href="{% url 'my_application' %}">Back</a><a
+            class="btn btn-primary" href="{% url 'step_contact_address' %}">Save &amp; continue</a></div>
+</form>
+{% endblock %}

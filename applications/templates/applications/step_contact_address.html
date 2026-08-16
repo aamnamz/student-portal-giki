@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Address & Contact{% endblock %}{% block page_title %}Address & Contact{% endblock %}
+{% block content %}
+<div class="page-intro">
+    <div>
+        <h2>Address &amp; contact</h2>
+        <p>Use contact information where we can reliably reach you.</p>
+    </div>
+</div>
+<form class="card form-card">
+    <div class="form-section">
+        <h3>Contact details</h3>
+        <div class="field-grid">
+            <div class="field"><label>Phone number</label><div class="input-group"><span class="input-group-text">+92</span><input value="{{ application.phone }}" placeholder="3XXXXXXXXX"></div></div>
+            <div class="field field--full"><label>Permanent
+                    address</label><textarea>{{ application.permanent_address }}</textarea></div>
+            <div class="field field--full"><label>Present
+                    address</label><textarea>{{ application.present_address }}</textarea></div>
+            <div class="field"><label>City</label><input value="{{ application.city }}"></div>
+            <div class="field"><label>Province</label><input value="{{ application.province }}"></div>
+            <div class="field"><label>Postal code</label><input value="{{ application.postal_code }}"></div>
+        </div>
+    </div>
+    <div class="form-actions"><a class="btn btn-outline" href="{% url 'step_personal_information' %}">Back</a><a
+            class="btn btn-primary" href="{% url 'step_guardian_information' %}">Save &amp; continue</a></div>
+</form>
+{% endblock %}

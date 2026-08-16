@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Application Submitted{% endblock %}{% block page_title %}Application Submitted{% endblock %}
+{% block content %}<section class="card empty-state">
+    <div class="notice-icon notice-icon--info" style="margin:auto; width:48px; height:48px; font-size:20px;">✓</div>
+    <h3>{% if submitted %}Application submitted{% else %}Submission status{% endif %}</h3>
+    <p>Your application is now with the Admissions team. We’ll notify you when its status changes.</p><a
+        class="btn btn-primary" href="{% url 'application_status' %}">View application status</a>
+</section>{% endblock %}

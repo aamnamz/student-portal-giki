@@ -1,130 +1,116 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
+from django.utils import timezone
+
+from applications.models import Application
+
+from .models import AdmissionCycle, Notice
+
+STATUS_TIMELINE_STEPS = [
+    "Registration",
+    "Application Started",
+    "Application Completed",
+    "Submitted",
+    "Under Review",
+    "Decision",
+]
+
+STATUS_TO_STEP_INDEX = {
+    "draft": 1,
+    "ready": 2,
+    "submitted": 3,
+    "under_review": 4,
+    "action_required": 4,
+    "accepted": 5,
+    "rejected": 5,
+}
+
+
+def _build_timeline(application):
+    current_index = STATUS_TO_STEP_INDEX.get(application.status, 0)
+    return [
+        {"label": label, "done": i < current_index, "current": i == current_index}
+        for i, label in enumerate(STATUS_TIMELINE_STEPS)
+    ]
 
 
 @login_required
 def dashboard(request):
-    checklist = [
-        {"name": "Personal Information", "status_key": "completed", "status_label": "Completed"},
-        {"name": "Contact & Address", "status_key": "completed", "status_label": "Completed"},
-        {"name": "Academic Information", "status_key": "inprogress", "status_label": "In Progress"},
-        {"name": "Guardian Information", "status_key": "notstarted", "status_label": "Not Started"},
-        {"name": "Documents", "status_key": "needscorrection", "status_label": "Needs Correction"},
-    ]
+    application, _ = Application.objects.get_or_create(applicant=request.user)
+    cycle = AdmissionCycle.get_active()
 
-    status_timeline = [
-        {"label": "Registration", "done": True, "current": False},
-        {"label": "Application Started", "done": True, "current": False},
-        {"label": "Application Completed", "done": False, "current": True},
-        {"label": "Submitted", "done": False, "current": False},
-        {"label": "Under Review", "done": False, "current": False},
-        {"label": "Decision", "done": False, "current": False},
-    ]
+    # application.documents works via the related_name set on
+    # documents.Document.application — no import from documents needed.
+    documents = application.documents.all()
+    docs_uploaded = documents.filter(status__in=["uploaded", "under_verification", "verified"]).count()
+    docs_missing = documents.filter(status="not_uploaded").count()
+    docs_pending = documents.filter(status="under_verification").count()
+    docs_correction = documents.filter(status__in=["rejected", "replace_required"]).count()
 
-    important_dates = [
-        {"label": "Application Deadline", "value": "August 30, 2026", "urgent": True},
-        {"label": "Document Submission Deadline", "value": "September 3, 2026", "urgent": False},
-        {"label": "Entry Test Date", "value": "September 15, 2026", "urgent": False},
-        {"label": "Interview Date", "value": "To be announced", "urgent": False},
-        {"label": "Admission Decision Date", "value": "October 10, 2026", "urgent": False},
-    ]
+    important_dates = []
+    if cycle:
+        date_fields = [
+            ("Application Deadline", cycle.application_deadline, True),
+            ("Document Submission Deadline", cycle.document_deadline, False),
+            ("Entry Test Date", cycle.entry_test_date, False),
+            ("Interview Date", cycle.interview_date, False),
+            ("Admission Decision Date", cycle.decision_date, False),
+        ]
+        for label, value, urgent in date_fields:
+            important_dates.append({
+                "label": label,
+                "value": value.strftime("%B %d, %Y") if value else "To be announced",
+                "urgent": urgent and bool(value),
+            })
 
-    notices = [
-        {"type": "warn", "title": "Application deadline is in 18 days", "meta": "Reminder · Aug 12, 2026"},
-        {"type": "danger", "title": "Domicile certificate needs correction", "meta": "Documents · Aug 10, 2026"},
-        {"type": "info", "title": "Admissions office: campus visit day announced", "meta": "Announcement · Aug 8, 2026"},
-    ]
+    notices_qs = (Notice.objects.filter(applicant__isnull=True) | Notice.objects.filter(applicant=request.user))
+    notices_qs = notices_qs.order_by("-created_at")[:5]
+
+    if application.status == "draft" and application.sections_completed_count == 0:
+        primary_action = "Start Application"
+    elif application.is_ready_for_submission:
+        primary_action = "Review Application"
+    elif application.status in ("submitted", "under_review", "accepted", "rejected", "action_required"):
+        primary_action = "View Application"
+    else:
+        primary_action = "Continue Application"
 
     context = {
         "active_nav": "dashboard",
         "applicant_name": request.user.get_full_name() or request.user.username,
-        "applicant_initials": "".join([n[0] for n in (request.user.get_full_name() or "A A").split()[:2]]).upper(),
-        "notification_count": 3,
+        "applicant_email": request.user.email,
+        "today": timezone.localdate(),
+        "applicant_initials": "".join(
+            [n[0] for n in (request.user.get_full_name() or "A A").split()[:2]]
+        ).upper(),
+        "notification_count": notices_qs.count(),
 
-        "application_deadline": "Aug 30, 2026",
-        "progress_percent": 40,
-        "sections_completed": 2,
-        "sections_total": 5,
-        "primary_action": "Continue Application",
+        "application_deadline": important_dates[0]["value"] if important_dates else "To be announced",
+        "progress_percent": application.progress_percent,
+        "sections_completed": application.sections_completed_count,
+        "sections_total": application.sections_total,
+        "primary_action": primary_action,
 
-        "status_key": "inprogress",
-        "status_label": "In Progress",
-        "status_timeline": status_timeline,
+        "status_key": application.status.replace("_", ""),
+        "status_label": application.get_status_display(),
+        "status_timeline": _build_timeline(application),
 
-        "checklist": checklist,
+        "checklist": application.checklist,
         "important_dates": important_dates,
 
-        "docs_uploaded": 3,
-        "docs_missing": 2,
-        "docs_pending": 1,
-        "docs_correction": 1,
+        "docs_uploaded": docs_uploaded,
+        "docs_missing": docs_missing,
+        "docs_pending": docs_pending,
+        "docs_correction": docs_correction,
 
-        "notices": notices,
+        "notices": [
+            {"type": n.notice_type, "title": n.title, "meta": n.created_at.strftime("%b %d, %Y")}
+            for n in notices_qs
+        ],
     }
-    return render(request, "dashboard.html", context)
-
-
-# ---------------------------------------------------------------------
-# Placeholder views below — one per sidebar/navbar link.
-# Each just renders a template with active_nav set so the sidebar
-# highlights correctly. Replace bodies as you build each page out.
-# ---------------------------------------------------------------------
-
-@login_required
-def my_application(request):
-    return render(request, "application/overview.html", {"active_nav": "application"})
-
-
-@login_required
-def step_personal_information(request):
-    return render(request, "application/step_personal_information.html", {"active_nav": "application"})
-
-
-@login_required
-def step_contact_address(request):
-    return render(request, "application/step_contact_address.html", {"active_nav": "application"})
-
-
-@login_required
-def step_academic_information(request):
-    return render(request, "application/step_academic_information.html", {"active_nav": "application"})
-
-
-@login_required
-def step_guardian_information(request):
-    return render(request, "application/step_guardian_information.html", {"active_nav": "application"})
-
-
-@login_required
-def review_application(request):
-    return render(request, "application/review.html", {"active_nav": "application"})
-
-
-@login_required
-def submit_application(request):
-    return render(request, "application/submit.html", {"active_nav": "application"})
-
-
-@login_required
-def documents(request):
-    return render(request, "documents.html", {"active_nav": "documents"})
-
-
-@login_required
-def my_profile(request):
-    return render(request, "profile.html", {"active_nav": "profile"})
-
-
-@login_required
-def application_status(request):
-    return render(request, "status.html", {"active_nav": "status"})
-
-
-@login_required
-def settings_view(request):
-    return render(request, "settings.html", {"active_nav": "settings"})
+    return render(request, "dashboard/dashboard.html", context)
 
 
 @login_required
 def help_contact(request):
-    return render(request, "help.html", {"active_nav": "help"})
+    return render(request, "dashboard/help.html", {"active_nav": "help"})

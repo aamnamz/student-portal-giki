@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Review Application{% endblock %}{% block page_title %}Review Application{% endblock %}
+{% block content %}
+<div class="page-intro">
+    <div>
+        <h2>Review your application</h2>
+        <p>Confirm each section before you submit it to Admissions.</p>
+    </div><span class="status-badge status--{{ application.status|cut:'_' }}">{{ application.get_status_display
+        }}</span>
+</div>
+<div class="grid grid-2">
+    <section class="card card-pad">
+        <div class="section-title">Application sections</div>
+        <p class="section-sub">Update any section that is incomplete before submission.</p>
+        <div class="summary-list">
+            <div class="summary-row"><span class="summary-label">Personal information</span><a class="summary-value"
+                    href="{% url 'step_personal_information' %}">Review</a></div>
+            <div class="summary-row"><span class="summary-label">Address &amp; contact</span><a class="summary-value"
+                    href="{% url 'step_contact_address' %}">Review</a></div>
+            <div class="summary-row"><span class="summary-label">Guardian information</span><a class="summary-value"
+                    href="{% url 'step_guardian_information' %}">Review</a></div>
+            <div class="summary-row"><span class="summary-label">Previous education</span><a class="summary-value"
+                    href="{% url 'step_academic_information' %}">Review</a></div>
+            <div class="summary-row"><span class="summary-label">Documents</span><a class="summary-value"
+                    href="{% url 'documents' %}">Review</a></div>
+        </div>
+    </section>
+    <section class="card card-pad">
+        <div class="section-title">Ready to submit?</div>
+        <p class="section-sub">Once submitted, your application is sent for review and cannot be edited unless
+            Admissions requests changes.</p>{% if application.is_ready_for_submission %}<form method="post"
+            action="{% url 'submit_application' %}">{% csrf_token %}<button class="btn btn-primary" type="submit">Submit
+                application</button></form>{% else %}<div class="notice">
+            <div class="notice-icon notice-icon--warn">!</div>
+            <div>
+                <div class="notice-title">Complete all required sections</div>
+                <div class="notice-meta">Submission unlocks once every section is complete.</div>
+            </div>
+        </div>{% endif %}
+    </section>
+</div>
+{% endblock %}

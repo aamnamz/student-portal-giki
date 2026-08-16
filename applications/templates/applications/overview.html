@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}My Application{% endblock %}{% block page_title %}My Application{% endblock %}
+{% block content %}
+<div class="page-intro">
+    <div>
+        <h2>Your application</h2>
+        <p>Complete each section, then review your information before submitting.</p>
+    </div><a class="btn btn-primary" href="{% url 'step_personal_information' %}">Continue application</a>
+</div>
+<div class="grid grid-2">
+    <section class="card card-pad">
+        <div class="section-title">Application checklist</div>
+        <p class="section-sub">Your progress across the required sections</p>
+        <div class="checklist">{% for item in checklist %}<div class="checklist-row">
+                <div class="checklist-left"><span class="checklist-name">{{ item.name }}</span></div><span
+                    class="status-badge status--{{ item.status_key }}">{{ item.status_label }}</span>
+            </div>{% endfor %}</div>
+    </section>
+    <section class="card card-pad">
+        <div class="section-title">Overall progress</div>
+        <p class="section-sub">{{ progress_percent }}% complete</p>
+        <div class="progress-bar-track">
+            <div class="progress-bar-fill" data-percent="{{ progress_percent }}" style="width:0"></div>
+        </div>{% if is_ready_for_submission %}<a class="btn btn-primary" href="{% url 'review_application' %}">Review
+            application</a>{% else %}<p class="section-sub">Complete all sections to unlock submission.</p>{% endif %}
+    </section>
+</div>
+{% endblock %}

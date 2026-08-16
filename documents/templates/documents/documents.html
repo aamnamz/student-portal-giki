@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Documents{% endblock %}{% block page_title %}Documents{% endblock %}
+{% block content %}<div class="page-intro">
+    <div>
+        <h2>Required documents</h2>
+        <p>Upload a clear copy of every required document. Accepted formats: images or PDF.</p>
+    </div>
+</div>
+<section class="card card-pad">
+    <div style="overflow-x:auto">
+        <table class="doc-table">
+            <thead>
+                <tr>
+                    <th>Document</th>
+                    <th>Status</th>
+                    <th>File</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for document in documents %}
+                <tr>
+                    <td>{{ document.get_doc_type_display }}</td>
+                    <td>
+                        <span class="status-badge status--{{ document.status|cut:'_' }}">{{ document.get_status_display }}</span>
+                    </td>
+                    <td>
+                        {% if document.file %}
+                        <a href="{{ document.file.url }}" target="_blank">
+                            View uploaded file
+                        </a>
+                        {% else %}
+                        No file uploaded
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form method="post" enctype="multipart/form-data" class="upload-control needs-validation" novalidate>
+                            {% csrf_token %}
+                            <input type="hidden" name="document_id" value="{{ document.pk }}">
+                            <input type="file" name="file" accept="image/*,.pdf" required>
+                            <div class="invalid-feedback">Please choose a document to upload.</div>
+                            <div class="valid-feedback">Looks good!</div>
+                            <button class="btn btn-outline" type="submit">
+                                {% if document.file %}
+                                Replace
+                                {% else %}
+                                Upload
+                                {% endif %}
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="form-actions">
+        <a class="btn btn-outline" href="{% url 'step_additional_information' %}">
+            Previous
+        </a>
+        <a class="btn btn-primary" href="{% url 'declaration' %}">
+            Next: declaration
+        </a>
+    </div>
+</section>
+{% endblock %}
+{% block extra_scripts %}
+<script>document.querySelectorAll("form.needs-validation").forEach((form) => form.addEventListener("submit", (event) => { form.classList.add("was-validated"); if (!form.checkValidity()) { event.preventDefault(); event.stopPropagation(); } }));</script>
+{% endblock %}
