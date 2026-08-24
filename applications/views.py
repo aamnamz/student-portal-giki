@@ -113,27 +113,71 @@ def step_additional_information(request):
 
 def _step(request, application, form_class, status_field, next_route, title, guidance):
     form = form_class(request.POST or None, request.FILES or None, instance=application)
+
     if request.method == "POST" and form.is_valid():
-        uploaded_photo = form.cleaned_data.get("student_photo") if "student_photo" in form.fields else None
+
+        # Get the actual uploaded file, not the Base64 string from cleaned_data
+        uploaded_photo = request.FILES.get("student_photo")
+
         if uploaded_photo:
             uploaded_photo.seek(0)
+
+            # AI validation
             is_valid, error_message = validate_passport_image(uploaded_photo)
+
             if not is_valid:
                 form.add_error("student_photo", error_message)
-                return render(request, "applications/step_form.html", {"active_nav": "application", "application": application, "form": form, "title": title, "guidance": guidance})
+                return render(
+                    request,
+                    "applications/step_form.html",
+                    {
+                        "active_nav": "application",
+                        "application": application,
+                        "form": form,
+                        "title": title,
+                        "guidance": guidance,
+                    },
+                )
+
+            # Reset after AI validation so the complete file can be read
             uploaded_photo.seek(0)
+
         updated = form.save(commit=False)
+
         if uploaded_photo:
-            updated.student_photo = base64.b64encode(uploaded_photo.read()).decode("ascii")
-            updated.student_photo_type = uploaded_photo.content_type or "image/jpeg"
-        updated.full_name = f"{updated.first_name} {updated.last_name}".strip() or updated.full_name
+            # Convert ONLY after the AI check passes
+            updated.student_photo = base64.b64encode(
+                uploaded_photo.read()
+            ).decode("ascii")
+
+            updated.student_photo_type = (
+                uploaded_photo.content_type or "image/jpeg"
+            )
+
+        updated.full_name = (
+            f"{updated.first_name} {updated.last_name}"
+        ).strip() or updated.full_name
+
         setattr(updated, status_field, "completed")
         updated.save()
+
         if status_field == "academic_info_status":
             from documents.views import update_documents_status
             update_documents_status(updated)
+
         return redirect(next_route)
-    return render(request, "applications/step_form.html", {"active_nav": "application", "application": application, "form": form, "title": title, "guidance": guidance})
+
+    return render(
+        request,
+        "applications/step_form.html",
+        {
+            "active_nav": "application",
+            "application": application,
+            "form": form,
+            "title": title,
+            "guidance": guidance,
+        },
+    )
 
 
 @login_required

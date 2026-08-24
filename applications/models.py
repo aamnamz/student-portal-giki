@@ -9,7 +9,10 @@ from django.db import models
 
 letters_only = RegexValidator(r"^[A-Za-z]+(?:[-'][A-Za-z]+)*$", "Use letters only.")
 letters_and_spaces = RegexValidator(r"^[A-Za-z]+(?:[ '-][A-Za-z]+)*$", "Use letters, spaces, hyphens, or apostrophes only.")
-ten_digit_phone = RegexValidator(r'^\d{10}$', 'Enter a valid 10 digit mobile number.')
+pakistani_phone = RegexValidator(
+    r'^92\d{10}$',
+    'Enter a valid phone number starting with 92 followed by 10 digits.',
+)
 six_digit_code = RegexValidator(r'^[0-9]{4,6}$', 'Enter a valid postal code.')
 cnic_format = RegexValidator(r'^\d{5}-\d{7}-\d$', 'Format: 12345-1234567-1.')
 
@@ -93,9 +96,8 @@ class Application(models.Model):
 
     # ---- Section 2: Contact & Address ----
     contact_address_status = models.CharField(max_length=20, choices=SECTION_STATUS_CHOICES, default="not_started")
-    phone = models.CharField(max_length=10, validators=[ten_digit_phone], blank=True)
-    alternate_phone = models.CharField(max_length=10, validators=[ten_digit_phone], blank=True)
-    email_address = models.EmailField(unique=True, max_length=100)
+    phone = models.CharField(max_length=12, validators=[pakistani_phone], blank=True)
+    alternate_phone = models.CharField(max_length=12, validators=[pakistani_phone], blank=True)
     permanent_address = models.TextField(max_length=200)
     present_address = models.TextField(max_length=200)
     city = models.CharField(max_length=30, validators=[letters_and_spaces])
@@ -128,13 +130,13 @@ class Application(models.Model):
     guardian_relationship = models.CharField(max_length=50, blank=True)
     guardian_cnic = models.CharField(max_length=15, validators=[cnic_format], blank=True)
     guardian_occupation = models.CharField(max_length=150, blank=True)
-    guardian_phone = models.CharField(max_length=10, validators=[ten_digit_phone], blank=True)
+    guardian_phone = models.CharField(max_length=12, validators=[pakistani_phone], blank=True)
     guardian_email = models.EmailField(blank=True)
     guardian_address = models.TextField(blank=True)
     guardian_income = models.CharField(max_length=50, blank=True)
     emergency_contact_name = models.CharField(max_length=150, validators=[letters_and_spaces], blank=True)
     emergency_contact_relationship = models.CharField(max_length=50, blank=True)
-    emergency_contact_number = models.CharField(max_length=10, validators=[ten_digit_phone], blank=True)
+    emergency_contact_number = models.CharField(max_length=12, validators=[pakistani_phone], blank=True)
 
     # ---- Section 5: Documents (status rolls up from Document objects below) ----
     documents_status = models.CharField(max_length=20, choices=SECTION_STATUS_CHOICES, default="not_started")

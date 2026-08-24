@@ -34,7 +34,7 @@
             <div class="field"><label>First name</label><input value="{{ request.user.first_name }}" readonly></div>
             <div class="field"><label>Last name</label><input value="{{ request.user.last_name }}" readonly></div>
             <div class="field"><label>Email address</label><input value="{{ request.user.email }}" readonly></div>
-            <div class="field"><label>Phone number</label><input value="{{ application.phone|default:profile.phone }}"
+            <div class="field"><label>Phone number</label><input value="{% if application.phone|default:profile.phone %}+{{ application.phone|default:profile.phone }}{% endif %}"
                     readonly></div>
         </div>
     </div>

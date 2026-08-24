@@ -13,9 +13,16 @@ class PortalForm(forms.ModelForm):
 
         for name, field in self.fields.items():
             if "phone" in name or name == "emergency_contact_number":
-                field.widget.attrs.update({"inputmode": "numeric", "pattern": "[0-9]{10}", "maxlength": "10"})
+                field.widget.attrs.update({
+                    "inputmode": "numeric",
+                    "pattern": "92[0-9]{10}",
+                    "maxlength": "12",
+                    "placeholder": "923XXXXXXXXX",
+                })
             elif "cnic" in name:
                 field.widget.attrs.update({"inputmode": "numeric", "pattern": "[0-9]{5}-[0-9]{7}-[0-9]", "maxlength": "15", "placeholder": "12345-1234567-1"})
+            elif name == "postal_code":
+                field.widget.attrs.update({"inputmode": "numeric", "pattern": "[0-9]{4,6}", "maxlength": "6"})
 
 
 class PersonalInformationForm(PortalForm):
@@ -24,7 +31,13 @@ class PersonalInformationForm(PortalForm):
     class Meta:
         model = Application
         fields = ["student_photo", "first_name", "last_name", "father_name", "mother_name", "date_of_birth", "cnic_or_bform", "blood_group", "gender", "marital_status", "nationality", "religion"]
-        widgets = {"date_of_birth": forms.DateInput(attrs={"type": "date"}), "blood_group": forms.Select(choices=[("", "Select blood group"), ("A+", "A+"), ("A-", "A-"), ("B+", "B+"), ("B-", "B-"), ("AB+", "AB+"), ("AB-", "AB-"), ("O+", "O+"), ("O-", "O-")]), "gender": forms.Select(choices=[("", "Select gender"), *Application.GENDER_CHOICES]), "marital_status": forms.Select(choices=[("", "Select marital status"), ("single", "Single"), ("married", "Married")]), "nationality": forms.Select(choices=[("", "Select nationality"), ("Pakistani", "Pakistani"), ("Other", "Other")]), "religion": forms.Select(choices=[("", "Select religion"), ("Islam", "Islam"), ("Christianity", "Christianity"), ("Hinduism", "Hinduism"), ("Sikhism", "Sikhism"), ("Other", "Other")])}
+        widgets = {"date_of_birth": forms.DateInput(attrs={"type": "date"}), 
+                   "blood_group": forms.Select(choices=[("", "Select blood group"), ("A+", "A+"), ("A-", "A-"), ("B+", "B+"), ("B-", "B-"), ("AB+", "AB+"), ("AB-", "AB-"), ("O+", "O+"), ("O-", "O-")]), 
+                   "gender": forms.Select(choices=[("", "Select gender"), *Application.GENDER_CHOICES]), 
+                   "marital_status": forms.Select(choices=[("", "Select marital status"), ("single", "Single"), ("married", "Married")]), 
+                   "nationality": forms.Select(choices=[("", "Select nationality"), ("Pakistani", "Pakistani"), ("Other", "Other")]), 
+                   "religion": forms.Select(choices=[("", "Select religion"), ("Islam", "Islam"), ("Christianity", "Christianity"), ("Hinduism", "Hinduism"), ("Sikhism", "Sikhism"), ("Other", "Other")])
+                   }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -34,7 +47,7 @@ class PersonalInformationForm(PortalForm):
 class ContactAddressForm(PortalForm):
     class Meta:
         model = Application
-        fields = ["phone", "alternate_phone", "email_address", "present_address", "permanent_address", "city", "district", "province", "postal_code", "domicile_province", "domicile_district"]
+        fields = ["phone", "alternate_phone", "present_address", "permanent_address", "city", "district", "province", "postal_code", "domicile_province", "domicile_district"]
         widgets = {"present_address": forms.Textarea(attrs={"rows": 4, "maxlength": 200}), "permanent_address": forms.Textarea(attrs={"rows": 4, "maxlength": 200}), "province": forms.Select(choices=[("", "Select province"), *Application._meta.get_field("province").choices]), "domicile_province": forms.Select(choices=[("", "Select domicile province"), *Application._meta.get_field("domicile_province").choices])}
 
 

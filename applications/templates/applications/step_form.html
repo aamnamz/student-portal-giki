@@ -7,7 +7,8 @@
     <p>{{ guidance }}</p>
   </div>
 </div>
-<form class="card form-card needs-validation {% if form.is_bound %}was-validated{% endif %}" method="post" enctype="multipart/form-data" novalidate>
+<form class="card form-card needs-validation {% if form.is_bound %}was-validated{% endif %}" method="post"
+  enctype="multipart/form-data" novalidate>
   {% csrf_token %}
   {% if form.non_field_errors %}<div class="invalid-feedback d-block">{{ form.non_field_errors }}</div>{% endif %}
   {% if form.student_photo %}
@@ -32,7 +33,7 @@
       <p class="photo-caption">Passport-size photo <span class="required">*</span></p>
       <div class="invalid-feedback" id="photoError" hidden></div>
       {% for error in form.student_photo.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
-      <div class="valid-feedback">Looks good!</div>
+      {% if not form.student_photo.errors %}<div class="valid-feedback">Looks good!</div>{% endif %}
     </div>
     <aside class="photo-upload-help" aria-label="Photo upload instructions">
       <div class="photo-upload-help-title">Before you upload</div>
@@ -52,18 +53,35 @@
       class="field {% if field.name == 'present_address' or field.name == 'permanent_address' %}field--full{% endif %}">
       <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span
           class="required">*</span>{% endif %}</label>
-      {% if field.name == 'phone' %}
+      {% if 'phone' in field.name or field.name == 'emergency_contact_number' %}
       <div class="input-group has-validation">
-        <span class="input-group-text">+92</span>{{ field }}
+        <span class="input-group-text">+</span>{{ field }}
         {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
         <div class="invalid-feedback">Please provide a valid {{ field.label }}.</div>
-        <div class="valid-feedback">Looks good!</div>
+        {% if not field.errors %}<div class="valid-feedback">Looks good!</div>{% endif %}
       </div>
+      {% elif field.field.widget.input_type == "radio" %}
+      <div class="radio-options">
+        {% for radio in field %}
+        <label class="radio-option">
+          {{ radio.tag }}
+          <span>{{ radio.choice_label }}</span>
+        </label>
+        {% endfor %}
+      </div>
+      {% for error in field.errors %}
+      <div class="invalid-feedback d-block">{{ error }}</div>
+      {% endfor %}
+
       {% else %}
       {{ field }}
-      {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+      {% for error in field.errors %}
+      <div class="invalid-feedback d-block">{{ error }}</div>
+      {% endfor %}
       <div class="invalid-feedback">Please provide a valid {{ field.label }}.</div>
+      {% if not field.errors %}
       <div class="valid-feedback">Looks good!</div>
+      {% endif %}
       {% endif %}
     </div>
     {% endif %}
@@ -75,14 +93,23 @@
 {% endblock %}
 {% block extra_scripts %}
 <script>
+  const pageLoader = document.getElementById("pageLoader");
+
   document.querySelectorAll("form.needs-validation").forEach((form) => {
     form.addEventListener("submit", (event) => {
       form.classList.add("was-validated");
+
       if (!form.checkValidity()) {
         event.preventDefault();
-        event.stopPropagation();
+        event.stopImmediatePropagation();
+        if (pageLoader) pageLoader.hidden = true;
+        const firstInvalid = form.querySelector(":invalid");
+        if (firstInvalid) firstInvalid.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
       }
-    });
+
+      if (pageLoader) pageLoader.hidden = false;
+    }, true);
   });
 
   document.querySelectorAll('input[name="cnic_or_bform"], input[name="guardian_cnic"]').forEach((input) => {
@@ -93,7 +120,11 @@
   });
 
   document.querySelectorAll('input[name="phone"], input[name="alternate_phone"], input[name="guardian_phone"], input[name="emergency_contact_number"]').forEach((input) => {
-    input.addEventListener("input", () => { input.value = input.value.replace(/\D/g, "").slice(0, 10); });
+    input.addEventListener("input", () => { input.value = input.value.replace(/\D/g, "").slice(0, 12); });
+  });
+
+  document.querySelectorAll('input[name="postal_code"]').forEach((input) => {
+    input.addEventListener("input", () => { input.value = input.value.replace(/\D/g, "").slice(0, 6); });
   });
 
   const intermediateResult = document.getElementById("id_intermediate_result");
@@ -140,7 +171,7 @@
       if (!file) return;
       submitButtons.forEach((button) => { button.disabled = true; });
       setPhotoError("");
-      document.getElementById("pageLoader").hidden = false;
+      if (pageLoader) pageLoader.hidden = false;
       try {
         const dataUrl = await new Promise((resolve, reject) => {
           const reader = new FileReader();
@@ -166,7 +197,7 @@
         setPhotoError("Photo validation could not be completed. Please try again.");
         resetPhoto();
       } finally {
-        document.getElementById("pageLoader").hidden = true;
+        if (pageLoader) pageLoader.hidden = true;
         submitButtons.forEach((button) => { button.disabled = false; });
       }
     });
