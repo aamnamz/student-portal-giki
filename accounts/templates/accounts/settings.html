@@ -11,11 +11,27 @@
         <h3>Notifications</h3>
         <p>Choose your preferred communication channels.</p>
         <div class="summary-list">
-            <div class="summary-row"><span class="summary-label">Email notifications</span><span
-                    class="summary-value">{% if profile.email_notifications %}Enabled{% else %}Disabled{% endif
-                    %}</span></div>
-            <div class="summary-row"><span class="summary-label">SMS notifications</span><span class="summary-value">{%
-                    if profile.sms_notifications %}Enabled{% else %}Disabled{% endif %}</span></div>
+            <div class="summary-row">
+                <span class="summary-label">Email notifications</span>
+                <span class="summary-value">
+                    {% if profile.email_notifications %}
+                    Enabled
+                    {% else %}
+                    Disabled
+                    {% endif%}
+                </span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">SMS notifications</span>
+                <span class="summary-value">
+                    {% if profile.sms_notifications %}
+                    Enabled
+                    {% else %}
+                    Disabled
+                    {% endif %}
+                </span>
+            </div>
         </div>
     </div>
-</section>{% endblock %}
+</section>
+{% endblock %}

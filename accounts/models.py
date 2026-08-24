@@ -3,12 +3,15 @@ from django.db import models
 from django.core.validators import RegexValidator
 
 
-ten_digit_phone = RegexValidator(r'^\d{10}$', 'Enter a valid 10 digit mobile number.')
+pakistani_phone = RegexValidator(
+    r'^92\d{10}$',
+    'Enter a valid phone number starting with 92 followed by 10 digits.',
+)
 
 
 class Profile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile")
-    phone = models.CharField(max_length=10, validators=[ten_digit_phone], blank=True)
+    phone = models.CharField(max_length=12, validators=[pakistani_phone], blank=True)
     profile_picture = models.ImageField(upload_to="profile_pictures/", blank=True, null=True)
 
     email_notifications = models.BooleanField(default=True)
