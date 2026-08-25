@@ -153,7 +153,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
-
+STATICFILES_DIRS = [
+    BASE_DIR / "static",   # or os.path.join(BASE_DIR, "static") on older Django
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -164,7 +166,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],  # empty on purpose — APP_DIRS finds each app's own templates/ folder
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -180,7 +182,7 @@ TEMPLATES = [
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"          # needed because Document.file uploads files
 
-LOGIN_URL = "login"
+LOGIN_URL = "accounts:login"
 LOGIN_REDIRECT_URL = "dashboard"
-LOGOUT_REDIRECT_URL = "login"
-SOCIALACCOUNT_LOGIN_ON_GET = False
+LOGOUT_REDIRECT_URL = "accounts:login"
+SOCIALACCOUNT_LOGIN_ON_GET = True
