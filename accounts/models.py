@@ -17,5 +17,13 @@ class Profile(models.Model):
     email_notifications = models.BooleanField(default=True)
     sms_notifications = models.BooleanField(default=False)
 
-    def __str__(self):
+def __str__(self):
         return f"Profile: {self.user}"
+
+def clean_phone_number(self):
+    phone = self.cleaned_data.get("phone_number", "").strip()
+
+    if phone.startswith("03") and len(phone) == 11:
+        return "92" + phone[1:]
+
+    return phone

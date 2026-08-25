@@ -12,7 +12,7 @@
     href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap"
     rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
   {% block extra_head %}{% endblock %}
 </head>
 
@@ -22,7 +22,7 @@
     <!-- ===================== SIDEBAR ===================== -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-brand">
-        <img class="logo-mark" src="{% static 'images/giki.png' %}" alt="GIKI logo">
+        <img class="logo-mark" src="{% static 'dashboard/images/giki.png' %}" alt="GIKI logo">
         <div class="brand-text">
           <span class="brand-name">GIKI</span>
           <span class="brand-sub">Applicant Portal</span>
@@ -60,7 +60,7 @@
           <a href="{% url 'step_academic_information' %}" class="subnav-item">Previous Education</a>
           <a href="{% url 'documents' %}" class="subnav-item">Upload Documents</a>
         </div>
-        <a href="{% url 'my_profile' %}" class="nav-item {% if active_nav == 'profile' %}active{% endif %}">
+        <a href="{% url 'accounts:my_profile' %}" class="nav-item {% if active_nav == 'profile' %}active{% endif %}">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <circle cx="12" cy="8" r="3.5" />
             <path d="M5 20c1.2-3.6 4-5.5 7-5.5s5.8 1.9 7 5.5" />
@@ -77,7 +77,7 @@
 
         <div class="nav-divider"></div>
 
-        <a href="{% url 'settings' %}" class="nav-item {% if active_nav == 'settings' %}active{% endif %}">
+        <a href="{% url 'accounts:settings' %}" class="nav-item {% if active_nav == 'settings' %}active{% endif %}">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <circle cx="12" cy="12" r="3" />
             <path
@@ -96,7 +96,7 @@
       </nav>
 
       <div class="sidebar-footer">
-        <form action="{% url 'logout' %}" method="post">
+        <form action="{% url 'accounts:logout' %}" method="post">
           {% csrf_token %}
           <button type="submit" class="nav-item nav-item--logout">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -141,10 +141,10 @@
               </svg>
             </button>
             <div class="profile-dropdown" id="profileDropdown">
-              <a href="{% url 'my_profile' %}">My Profile</a>
-              <a href="{% url 'settings' %}">Settings</a>
+              <a href="{% url 'accounts:my_profile' %}">My Profile</a>
+              <a href="{% url 'accounts:settings' %}">Settings</a>
               <div class="nav-divider"></div>
-              <form action="{% url 'logout' %}" method="post">
+              <form action="{% url 'accounts:logout' %}" method="post">
                 {% csrf_token %}
                 <button type="submit">Logout</button>
               </form>
@@ -161,12 +161,12 @@
 
   <div class="page-loader" id="pageLoader" aria-live="polite" aria-label="Loading" hidden>
     <div class="page-loader-card">
-      <img class="giki-loader" src="{% static 'images/giki.png' %}" alt="">
+      <img class="giki-loader" src="{% static 'dashboard/images/giki.png' %}" alt="">
       <span>Processing, please wait…</span>
     </div>
   </div>
 
-  <script src="{% static 'js/dashboard.js' %}"></script>
+  <script src="{% static 'dashboard/js/dashboard.js' %}"></script>
   {% block extra_scripts %}{% endblock %}
 </body>
 

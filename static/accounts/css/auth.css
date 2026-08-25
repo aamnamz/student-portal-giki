@@ -1,0 +1,648 @@
+:root {
+    --navy-950: #050d1f;
+    --navy-900: #0a1b3d;
+    --navy-800: #0f2557;
+    --navy-700: #163474;
+    --navy-accent: #2f5dc7;
+
+    --white: #ffffff;
+    --off-white: #f7f9fc;
+    --line: #e3e8f0;
+    --text-muted: #6b7385;
+    --danger: #d33a4b;
+    --danger-soft: #fdeced;
+
+    --radius-lg: 20px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+
+    --font-serif: "Playfair Display", Georgia, serif;
+    --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+/* =========================================================
+   BASE
+   ========================================================= */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    overflow: hidden;
+}
+
+body {
+    font-family: var(--font-sans);
+    background-color: var(--off-white);
+    color: #1c2333;
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
+/* =========================================================
+   PAGE SHELL
+   ========================================================= */
+
+.auth-shell {
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    overflow: hidden;
+}
+
+/* =========================================================
+   LEFT — VISUAL PANEL (2/3 WIDTH)
+   ========================================================= */
+
+.auth-visual {
+    position: relative;
+    flex: 0 0 66.6667%;
+    min-width: 0;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    padding: 3rem 4rem 2.5rem;
+    color: var(--white);
+
+    background-image:
+        linear-gradient(155deg, rgba(10, 27, 61, 0.72) 0%, rgba(5, 13, 31, 0.78) 70%),
+        var(--visual-bg-image);
+    background-size: cover, cover, cover;
+    background-position: center, center, center;
+    background-repeat: no-repeat, no-repeat, no-repeat;
+}
+
+.auth-visual .brand {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+}
+
+.auth-visual .brand img.logo {
+    width: 46px;
+    height: 46px;
+    object-fit: contain;
+    background: var(--white);
+    border-radius: 10px;
+    padding: 5px;
+}
+
+.auth-visual .brand-text {
+    line-height: 1.15;
+}
+
+.auth-visual .brand-text .name {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: 0.01em;
+}
+
+.auth-visual .brand-text .tag {
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.auth-visual .visual-copy {
+    position: relative;
+    z-index: 2;
+    max-width: 600px;
+}
+
+.auth-visual .visual-copy .eyebrow {
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 1rem;
+    display: inline-block;
+}
+
+.auth-visual .visual-copy h1 {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: clamp(2.1rem, 3.2vw, 3.6rem);
+    line-height: 1.18;
+    max-width: 650px;
+    margin-bottom: 1.1rem;
+}
+
+.auth-visual .visual-copy p {
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 1rem;
+    line-height: 1.7;
+    font-weight: 400;
+    max-width: 560px;
+}
+
+.auth-visual .visual-divider {
+    position: relative;
+    z-index: 2;
+    width: 56px;
+    height: 3px;
+    background: var(--white);
+    opacity: 0.85;
+    margin: 1.6rem 0;
+}
+
+.auth-visual .visual-stats {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    gap: 3rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+    padding-top: 1.75rem;
+}
+
+.auth-visual .visual-stats .stat-num {
+    font-family: var(--font-serif);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--white);
+}
+
+.auth-visual .visual-stats .stat-label {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.55);
+    letter-spacing: 0.03em;
+}
+
+.auth-visual .visual-footnote {
+    position: relative;
+    z-index: 2;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* =========================================================
+   RIGHT — FORM PANEL (1/3 WIDTH)
+   Base rules below use comfortable FIXED spacing — this is
+   what login renders with. Signup overrides these under the
+   .auth-compact scope further down, so it can compress to
+   fit 7 fields without affecting login at all.
+   ========================================================= */
+
+.auth-form-side {
+    flex: 0 0 33.3333%;
+    min-width: 0;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 2rem 2.5rem;
+    background: var(--white);
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 390px;
+}
+
+.mobile-brand {
+    display: none;
+    align-items: center;
+    gap: 0.7rem;
+    margin-bottom: 1.75rem;
+}
+
+.mobile-brand img {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    background: var(--navy-900);
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.mobile-brand span {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--navy-900);
+}
+
+/* Heading */
+
+.auth-card .auth-heading {
+    margin-bottom: 2rem;
+}
+
+.auth-card .auth-heading h2 {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    color: var(--navy-900);
+    font-size: 1.7rem;
+    margin-bottom: 0.4rem;
+}
+
+.auth-card .auth-heading p {
+    color: var(--text-muted);
+    margin-bottom: 0;
+    font-size: 0.9rem;
+    line-height: 1.55;
+}
+
+/* =========================================================
+   INPUTS
+   ========================================================= */
+
+.auth-card .form-control {
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--line);
+    background: var(--off-white);
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+}
+
+.auth-card .form-control:focus {
+    border-color: var(--navy-accent);
+    background: var(--white);
+    box-shadow: 0 0 0 0.2rem rgba(47, 93, 199, 0.14);
+}
+
+.auth-card .form-control.is-invalid {
+    border-color: var(--danger);
+}
+
+.auth-card .input-group-text {
+    border-radius: var(--radius-md);
+    background: var(--off-white);
+    border: 1.5px solid var(--line);
+    border-left: none;
+    cursor: pointer;
+    color: var(--text-muted);
+}
+
+.auth-card .input-group {
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+.auth-card .input-group .form-control {
+    width: auto;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.auth-card label.form-label {
+    font-weight: 600;
+    font-size: 0.83rem;
+    color: #2a3145;
+    margin-bottom: 0.4rem;
+    display: block;
+}
+
+.auth-card .form-check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.auth-card .form-check-input {
+    width: 1rem;
+    height: 1rem;
+    margin: 0;
+    accent-color: var(--navy-900);
+    border: 1.5px solid var(--line);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.auth-card .form-check-label {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.auth-card .d-flex a.small {
+    color: var(--navy-accent);
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+.auth-card .d-flex a.small:hover {
+    color: var(--navy-900);
+    text-decoration: underline;
+}
+
+/* Bootstrap ships .mb-3 / .mb-2 as margin-bottom utilities at
+   the same specificity as these — !important makes ours win
+   reliably regardless of stylesheet order. */
+
+.auth-card .mb-3 {
+    margin-bottom: 1rem !important;
+}
+
+.auth-card .mb-2 {
+    margin-bottom: 0.5rem !important;
+}
+
+/* =========================================================
+   PRIMARY BUTTON
+   ========================================================= */
+
+.btn-giki-primary {
+    background: var(--navy-900);
+    border: none;
+    color: var(--white);
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    padding: 0.8rem 1rem;
+    letter-spacing: 0.01em;
+    transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.btn-giki-primary:hover {
+    background: var(--navy-700);
+    color: var(--white);
+    transform: translateY(-1px);
+}
+
+.btn-giki-primary:active {
+    transform: translateY(0);
+}
+
+/* =========================================================
+   GOOGLE BUTTON
+   ========================================================= */
+
+.btn-google {
+    background: var(--white);
+    border: 1.5px solid var(--line);
+    color: #1c2333;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    padding: 0.72rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    transition: box-shadow 0.15s ease, transform 0.1s ease, border-color 0.15s ease;
+}
+
+.btn-google:hover {
+    box-shadow: 0 6px 18px rgba(10, 27, 61, 0.09);
+    border-color: #c7cedb;
+    transform: translateY(-1px);
+    color: #1c2333;
+}
+
+.btn-google img {
+    width: 20px;
+    height: 20px;
+}
+
+.auth-card .btn {
+    width: 100%;
+    justify-content: center;
+}
+
+/* =========================================================
+   DIVIDER
+   ========================================================= */
+
+.divider-with-text {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.divider-with-text::before,
+.divider-with-text::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+}
+
+/* =========================================================
+   FOOTER LINK
+   ========================================================= */
+
+.auth-footer-link {
+    text-align: center;
+    margin-top: 1.75rem;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.auth-footer-link a {
+    color: var(--navy-900);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.auth-footer-link a:hover {
+    text-decoration: underline;
+}
+
+/* =========================================================
+   PASSWORD STRENGTH (signup)
+   ========================================================= */
+
+.pw-strength-track {
+    height: 5px;
+    border-radius: 4px;
+    background: var(--line);
+    overflow: hidden;
+    margin-top: 0.5rem;
+}
+
+.pw-strength-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 4px;
+    transition: width 0.25s ease, background-color 0.25s ease;
+}
+
+.pw-strength-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+    display: inline-block;
+}
+
+/* =========================================================
+   VALIDATION
+   ========================================================= */
+
+.invalid-feedback-custom,
+.alert-danger {
+    color: var(--danger);
+    font-size: 0.8rem;
+    margin-top: 0.35rem;
+}
+
+.alert-danger {
+    background: var(--danger-soft);
+    padding: 0.6rem 0.9rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 1rem;
+}
+
+/* Signup: first/last name grid */
+
+.form-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 1rem;
+}
+
+/* =========================================================
+   COMPACT MODE — signup page only (add class="auth-compact"
+   alongside "auth-shell" in signup.html). Fluid vh-based
+   spacing so 7 fields compress to fit without a scrollbar,
+   without touching login's spacing above at all.
+   ========================================================= */
+
+.auth-compact .auth-form-side {
+    padding: clamp(0.75rem, 2.5vh, 2rem) 2.5rem;
+}
+
+.auth-compact .auth-card .auth-heading {
+    margin-bottom: clamp(0.5rem, 2vh, 2rem);
+}
+
+.auth-compact .auth-card .auth-heading h2 {
+    font-size: clamp(1.2rem, 1vw + 0.95rem, 1.7rem);
+    margin-bottom: clamp(0.15rem, 0.6vh, 0.4rem);
+}
+
+.auth-compact .auth-card .auth-heading p {
+    font-size: 0.82rem;
+    line-height: 1.4;
+}
+
+.auth-compact .auth-card .form-control {
+    padding: clamp(0.45rem, 1vh, 0.75rem) 1rem;
+    font-size: 0.9rem;
+}
+
+.auth-compact .auth-card .mb-3 {
+    margin-bottom: clamp(0.35rem, 1.4vh, 1rem) !important;
+}
+
+.auth-compact .auth-card .mb-2 {
+    margin-bottom: clamp(0.25rem, 1vh, 0.5rem) !important;
+}
+
+.auth-compact .pw-strength-track {
+    margin-top: clamp(0.15rem, 0.6vh, 0.5rem);
+}
+
+.auth-compact .divider-with-text {
+    margin: clamp(0.4rem, 1.5vh, 1.5rem) 0;
+}
+
+.auth-compact .auth-footer-link {
+    margin-top: clamp(0.4rem, 1.4vh, 1.75rem);
+}
+
+.auth-compact .btn-giki-primary,
+.auth-compact .btn-google {
+    padding: clamp(0.55rem, 1.2vh, 0.8rem) 1rem;
+}
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 1100px) {
+    .auth-visual {
+        flex-basis: 60%;
+        padding: 3rem;
+    }
+
+    .auth-form-side {
+        flex-basis: 40%;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+
+    .auth-card {
+        max-width: 360px;
+    }
+
+    .auth-visual .visual-copy h1 {
+        font-size: 2.3rem;
+    }
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 768px) {
+    .auth-visual {
+        display: none;
+    }
+
+    .auth-form-side {
+        flex: 0 0 100%;
+        width: 100%;
+        height: 100vh;
+        padding-top: 2.75rem;
+        padding-bottom: 2.75rem;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+
+    .auth-compact .auth-form-side {
+        padding-top: clamp(1rem, 4vh, 2.75rem);
+        padding-bottom: clamp(1rem, 4vh, 2.75rem);
+    }
+
+    .auth-card {
+        max-width: 460px;
+        width: 100%;
+    }
+
+    .mobile-brand {
+        display: flex;
+    }
+
+    .form-grid-2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-form-side {
+        padding-left: 1.25rem;
+        padding-right: 1.25rem;
+    }
+
+    .auth-card .auth-heading h2 {
+        font-size: 1.5rem;
+    }
+}
