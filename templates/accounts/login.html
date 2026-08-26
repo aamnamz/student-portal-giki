@@ -12,135 +12,133 @@
     <link rel="stylesheet" href="{% static 'accounts/css/auth.css' %}">
 </head>
 <body>
-<div class="auth-shell">
+<div class="container-fluid min-vh-100 p-0">
+    <div class="row g-0 min-vh-100">
 
-    <!-- Left — visual panel with logo (2/3) -->
-    <div class="auth-visual" 
-        style="--visual-bg-image: url('{% static 'accounts/images/giki_image.png' %}');">
-        <div class="brand">
-            <img src="{% static 'accounts/images/giki.png' %}" alt="GIKI" class="logo">
-            <div class="brand-text">
-                <div class="name">GIKI Graduate Admissions</div>
-                <div class="tag">MS &amp; PhD Applicant Portal</div>
-            </div>
-        </div>
+        <!-- Visual panel (2/3 on large screens, hidden below) -->
+        <div class="col-lg-8 d-none d-lg-flex flex-column justify-content-between auth-visual"
+             style="--visual-bg-image: url('{% static 'accounts/images/giki_image.png' %}');">
 
-        <div class="visual-copy">
-            <span class="eyebrow">Welcome back</span>
-            <h1>Continue your graduate application.</h1>
-            <div class="visual-divider"></div>
-            <p>
-                Sign in to check your application status, upload required
-                documents, and hear from the admissions office as your
-                review progresses.
-            </p>
-        </div>
-
-        <div class="visual-stats">
-            <div>
-                <div class="stat-num">20+</div>
-                <div class="stat-label">MS &amp; PhD programs</div>
-            </div>
-            <div>
-                <div class="stat-num">24/7</div>
-                <div class="stat-label">Applicant portal access</div>
-            </div>
-        </div>
-
-        <div class="visual-footnote">
-            &copy; {% now "Y" %} Ghulam Ishaq Khan Institute. All rights reserved.
-        </div>
-    </div>
-
-    <!-- Right — form panel (1/3) -->
-    <div class="auth-form-side">
-        <div class="auth-card">
-
-            <!-- Compact brand mark, visible only on mobile so the
-                 GIKI mark shows without scrolling to the visual panel -->
-            <div class="mobile-brand">
-                <img src="{% static 'accounts/images/giki.png' %}" alt="GIKI">
-                <span>GIKI Graduate Admissions</span>
+            <div class="d-flex align-items-center gap-3 brand">
+                <img src="{% static 'accounts/images/giki.png' %}" alt="GIKI" class="logo">
+                <div class="brand-text">
+                    <div class="name">GIKI Graduate Admissions</div>
+                    <div class="tag">MS &amp; PhD Applicant Portal</div>
+                </div>
             </div>
 
-            <div class="auth-heading">
-                <h2>Sign in to your account</h2>
+            <div class="visual-copy">
+                <span class="eyebrow d-inline-block mb-3">Welcome back</span>
+                <h1 class="mb-3">Continue your graduate application.</h1>
+                <div class="visual-divider my-4"></div>
                 <p>
-                    Enter your credentials to continue your MS application.
+                    Sign in to check your application status, upload required
+                    documents, and hear from the admissions office as your
+                    review progresses.
                 </p>
             </div>
 
-            <form method="post" novalidate data-needs-validation>
-                {% csrf_token %}
-
-                {% if form.non_field_errors %}
-                    <div class="alert-danger">
-                        {% for error in form.non_field_errors %}
-                            {{ error }}
-                        {% endfor %}
+            <div>
+                <div class="d-flex gap-5 pt-4 visual-stats">
+                    <div>
+                        <div class="stat-num">20+</div>
+                        <div class="stat-label">MS &amp; PhD programs</div>
                     </div>
-                {% endif %}
-
-                <div class="mb-3">
-                    <label for="{{ form.username.id_for_label }}" class="form-label">
-                        Email address
-                    </label>
-
-                    {{ form.username }}
-
-                    {% if form.username.errors %}
-                        <div class="invalid-feedback-custom">{{ form.username.errors.0 }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="mb-2">
-                    <label for="{{ form.password.id_for_name }}" class="form-label">
-                        Password
-                    </label>
-
-                    <div class="input-group">
-                        {{ form.password }}
-                        <span class="input-group-text" data-password-toggle="{{ form.password.auto_id }}">
-                            <i class="bi bi-eye"></i>
-                        </span>
+                    <div>
+                        <div class="stat-num">24/7</div>
+                        <div class="stat-label">Applicant portal access</div>
                     </div>
-
-                    {% if form.password.errors %}
-                        <div class="invalid-feedback-custom">{{ form.password.errors.0 }}</div>
-                    {% endif %}
                 </div>
-
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div class="form-check">
-                        {{ form.remember_me }}
-                        <label class="form-check-label small" for="{{ form.remember_me.id_for_name }}">
-                            Remember me
-                        </label>
-                    </div>
-
-                    <a href="#" class="small text-decoration-none">Forgot password?</a>
+                <div class="visual-footnote mt-4">
+                    &copy; {% now "Y" %} Ghulam Ishaq Khan Institute. All rights reserved.
                 </div>
-
-                <button type="submit" class="btn btn-giki-primary w-100">
-                    Sign In
-                </button>
-            </form>
-
-            <div class="divider-with-text">or continue with</div>
-
-            <a href="/accounts/google/login/" class="btn btn-google w-100">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
-                Continue with Google
-            </a>
-
-            <div class="auth-footer-link">
-                Don't have an account?
-                <a href="{% url 'accounts:signup' %}">Create one</a>
             </div>
-
         </div>
-    </div>
 
+        <!-- Form panel (1/3 on large screens, full width below) -->
+        <div class="col-lg-4 auth-form-side d-flex align-items-center justify-content-center py-4 py-lg-5 px-3 px-sm-4">
+            <div class="auth-card mx-auto">
+
+                <!-- Compact brand mark, mobile/tablet only -->
+                <div class="d-flex d-lg-none align-items-center gap-2 mb-4 mobile-brand">
+                    <img src="{% static 'accounts/images/giki.png' %}" alt="GIKI">
+                    <span>GIKI Graduate Admissions</span>
+                </div>
+
+                <div class="auth-heading mb-4">
+                    <h2>Sign in to your account</h2>
+                    <p class="mb-0">
+                        Enter your credentials to continue your MS application.
+                    </p>
+                </div>
+
+                <form method="post" novalidate data-needs-validation>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert-danger mb-3">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label for="{{ form.username.id_for_label }}" class="form-label">
+                            Email address
+                        </label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="invalid-feedback-custom">{{ form.username.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.password.id_for_name }}" class="form-label">
+                            Password
+                        </label>
+                        <div class="input-group">
+                            {{ form.password }}
+                            <span class="input-group-text" data-password-toggle="{{ form.password.auto_id }}">
+                                <i class="bi bi-eye"></i>
+                            </span>
+                        </div>
+                        {% if form.password.errors %}
+                            <div class="invalid-feedback-custom">{{ form.password.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="form-check d-flex align-items-center gap-2">
+                            {{ form.remember_me }}
+                            <label class="form-check-label small mb-0" for="{{ form.remember_me.id_for_name }}">
+                                Remember me
+                            </label>
+                        </div>
+                        <a href="#" class="small text-decoration-none">Forgot password?</a>
+                    </div>
+
+                    <button type="submit" class="btn btn-giki-primary w-100">
+                        Sign In
+                    </button>
+                </form>
+
+                <div class="divider-with-text my-4">or continue with</div>
+
+                <a href="/accounts/google/login/" class="btn btn-google w-100 d-flex align-items-center justify-content-center gap-2">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+                    Continue with Google
+                </a>
+
+                <div class="auth-footer-link text-center mt-4">
+                    Don't have an account?
+                    <a href="{% url 'accounts:signup' %}">Create one</a>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
 </div>
 
 <script src="{% static 'accounts/js/auth.js' %}"></script>
