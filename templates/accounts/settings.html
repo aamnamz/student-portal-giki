@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}{% block page_title %}Settings{% endblock %}
+{% block content %}<div class="page-intro">
+    <div>
+        <h2>Settings</h2>
+        <p>Manage how you receive important application updates.</p>
+    </div>
+</div>
+<section class="card form-card">
+    <div class="form-section">
+        <h3>Notifications</h3>
+        <p>Choose your preferred communication channels.</p>
+        <div class="summary-list">
+            <div class="summary-row">
+                <span class="summary-label">Email notifications</span>
+                <span class="summary-value">
+                    {% if profile.email_notifications %}
+                    Enabled
+                    {% else %}
+                    Disabled
+                    {% endif%}
+                </span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">SMS notifications</span>
+                <span class="summary-value">
+                    {% if profile.sms_notifications %}
+                    Enabled
+                    {% else %}
+                    Disabled
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,360 @@
+:root {
+    --navy-950: #050d1f;
+    --navy-900: #0a1b3d;
+    --navy-800: #0f2557;
+    --navy-700: #163474;
+    --navy-accent: #2f5dc7;
+
+    --white: #ffffff;
+    --off-white: #f7f9fc;
+    --line: #e3e8f0;
+    --text-muted: #6b7385;
+    --danger: #d33a4b;
+    --danger-soft: #fdeced;
+
+    --radius-lg: 20px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+
+    --font-serif: "Playfair Display", Georgia, serif;
+    --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+body {
+    font-family: var(--font-sans);
+    background-color: var(--off-white);
+    color: #1c2333;
+}
+
+/* =========================================================
+   VISUAL PANEL (left) — hidden below lg via d-none d-lg-flex
+   ========================================================= */
+
+.auth-visual {
+    padding: 3rem 4rem 2.5rem;
+    color: var(--white);
+    background-image:
+        linear-gradient(155deg, rgba(10, 27, 61, 0.72) 0%, rgba(5, 13, 31, 0.78) 70%),
+        var(--visual-bg-image);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.auth-visual .brand img.logo {
+    width: 46px;
+    height: 46px;
+    object-fit: contain;
+    background: var(--white);
+    border-radius: 10px;
+    padding: 5px;
+}
+
+.auth-visual .brand-text .name {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: 0.01em;
+}
+
+.auth-visual .brand-text .tag {
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.auth-visual .visual-copy {
+    max-width: 600px;
+}
+
+.auth-visual .eyebrow {
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.auth-visual .visual-copy h1 {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: clamp(2.1rem, 3.2vw, 3.6rem);
+    line-height: 1.18;
+    max-width: 650px;
+}
+
+.auth-visual .visual-copy p {
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 1rem;
+    line-height: 1.7;
+    max-width: 560px;
+}
+
+.auth-visual .visual-divider {
+    width: 56px;
+    height: 3px;
+    background: var(--white);
+    opacity: 0.85;
+}
+
+.auth-visual .visual-stats {
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.auth-visual .stat-num {
+    font-family: var(--font-serif);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--white);
+}
+
+.auth-visual .stat-label {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.auth-visual .visual-footnote {
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* =========================================================
+   FORM PANEL (right)
+   ========================================================= */
+
+.auth-form-side {
+    background: var(--white);
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 390px;
+}
+
+.mobile-brand img {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    background: var(--navy-900);
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.mobile-brand span {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--navy-900);
+}
+
+.auth-heading h2 {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    color: var(--navy-900);
+    font-size: 1.6rem;
+    margin-bottom: 0.4rem;
+}
+
+.auth-heading p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.55;
+}
+
+/* Inputs — Bootstrap .form-control skinned to match brand */
+
+.auth-card .form-control {
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--line);
+    background: var(--off-white);
+    padding: 0.7rem 1rem;
+    font-size: 0.95rem;
+}
+
+.auth-card .form-control:focus {
+    border-color: var(--navy-accent);
+    background: var(--white);
+    box-shadow: 0 0 0 0.2rem rgba(47, 93, 199, 0.14);
+}
+
+.auth-card .form-control.is-invalid {
+    border-color: var(--danger);
+}
+
+.auth-card .input-group-text {
+    border-radius: var(--radius-md);
+    background: var(--off-white);
+    border: 1.5px solid var(--line);
+    border-left: none;
+    cursor: pointer;
+    color: var(--text-muted);
+}
+
+.auth-card label.form-label {
+    font-weight: 600;
+    font-size: 0.83rem;
+    color: #2a3145;
+}
+
+.auth-card .form-check-input {
+    accent-color: var(--navy-900);
+    border: 1.5px solid var(--line);
+    cursor: pointer;
+}
+
+.auth-card .form-check-label {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.auth-card a.small {
+    color: var(--navy-accent);
+    font-weight: 500;
+}
+
+.auth-card a.small:hover {
+    color: var(--navy-900);
+}
+
+/* Primary / Google buttons */
+
+.btn-giki-primary {
+    background: var(--navy-900);
+    border: none;
+    color: var(--white);
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    padding: 0.8rem 1rem;
+    letter-spacing: 0.01em;
+    transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.btn-giki-primary:hover {
+    background: var(--navy-700);
+    color: var(--white);
+    transform: translateY(-1px);
+}
+
+.btn-giki-primary:active {
+    transform: translateY(0);
+}
+
+.btn-google {
+    background: var(--white);
+    border: 1.5px solid var(--line);
+    color: #1c2333;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    padding: 0.72rem 1rem;
+    transition: box-shadow 0.15s ease, transform 0.1s ease, border-color 0.15s ease;
+}
+
+.btn-google:hover {
+    box-shadow: 0 6px 18px rgba(10, 27, 61, 0.09);
+    border-color: #c7cedb;
+    transform: translateY(-1px);
+    color: #1c2333;
+}
+
+.btn-google img {
+    width: 20px;
+    height: 20px;
+}
+
+/* Divider */
+
+.divider-with-text {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.divider-with-text::before,
+.divider-with-text::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+}
+
+/* Footer link */
+
+.auth-footer-link {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.auth-footer-link a {
+    color: var(--navy-900);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.auth-footer-link a:hover {
+    text-decoration: underline;
+}
+
+/* Password strength (signup) */
+
+.pw-strength-track {
+    height: 5px;
+    border-radius: 4px;
+    background: var(--line);
+    overflow: hidden;
+}
+
+.pw-strength-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 4px;
+    transition: width 0.25s ease, background-color 0.25s ease;
+}
+
+.pw-strength-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* Validation messages */
+
+.invalid-feedback-custom,
+.alert-danger {
+    color: var(--danger);
+    font-size: 0.8rem;
+}
+
+.alert-danger {
+    background: var(--danger-soft);
+    padding: 0.6rem 0.9rem;
+    border-radius: var(--radius-sm);
+}
+
+
+
+
+/* =========================================================
+   RESPONSIVE TWEAKS (fine-tuning only — layout/show-hide is
+   handled by Bootstrap utility classes in the HTML)
+   ========================================================= */
+
+@media (max-width: 991.98px) {
+    .auth-visual {
+        padding: 2.25rem 2rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .auth-heading h2 {
+        font-size: 1.35rem;
+    }
+
+    .auth-card {
+        max-width: 100%;
+    }
+}
