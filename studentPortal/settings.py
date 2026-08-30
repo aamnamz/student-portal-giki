@@ -38,12 +38,17 @@ load_environment_file(BASE_DIR / ".env")
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-#r0_(r(!hkjlyp0p@puoy7-ye*+i8q@7mmf%xup$a6ku=$3xka'
+# Must be set via environment variable in production
+SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-#r0_(r(!hkjlyp0p@puoy7-ye*+i8q@7mmf%xup$a6ku=$3xka")
+if SECRET_KEY.startswith("django-insecure-") and not os.getenv("DEBUG", "False") == "True":
+    raise ValueError("SECRET_KEY must be changed via environment variable for production!")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+if DEBUG:
+    ALLOWED_HOSTS.extend(["localhost", "127.0.0.1"])
 
 
 # Application definition
@@ -73,6 +78,8 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
+# Custom user model
+AUTH_USER_MODEL = 'accounts.CustomUser'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -100,6 +107,8 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
+# Disable signup on GET requests for allauth
+SOCIALACCOUNT_LOGIN_ON_GET = False
 
 ROOT_URLCONF = 'studentPortal.urls'
 
@@ -185,4 +194,30 @@ MEDIA_ROOT = BASE_DIR / "media"          # needed because Document.file uploads 
 LOGIN_URL = "accounts:login"
 LOGIN_REDIRECT_URL = "dashboard"
 LOGOUT_REDIRECT_URL = "accounts:login"
-SOCIALACCOUNT_LOGIN_ON_GET = True
+
+# Security settings for production
+if not DEBUG:
+    # HTTPS settings
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    
+    # Content Security Policy
+    SECURE_CONTENT_SECURITY_POLICY = {
+        "default-src": ("'self'",),
+        "script-src": ("'self'", "'unsafe-inline'"),
+        "style-src": ("'self'", "'unsafe-inline'"),
+        "img-src": ("'self'", "data:", "https:"),
+    }
+    
+    # Cookie settings
+    SESSION_COOKIE_HTTPONLY = True
+    CSRF_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Strict'
+    CSRF_COOKIE_SAMESITE = 'Strict'
+else:
+    # Development settings
+    SOCIALACCOUNT_LOGIN_ON_GET = True  # Allow for testing in development only
