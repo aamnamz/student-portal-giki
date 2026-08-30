@@ -7,14 +7,20 @@ from django.core.validators import (
 from django.db import models
 
 
+# ---------------------------------------------------------------------------
+# Shared validators
+# ---------------------------------------------------------------------------
 letters_only = RegexValidator(r"^[A-Za-z]+(?:[-'][A-Za-z]+)*$", "Use letters only.")
-letters_and_spaces = RegexValidator(r"^[A-Za-z]+(?:[ '-][A-Za-z]+)*$", "Use letters, spaces, hyphens, or apostrophes only.")
-pakistani_phone = RegexValidator(
-    r'^92\d{10}$',
-    'Enter a valid phone number starting with 92 followed by 10 digits.',
+letters_and_spaces = RegexValidator(
+    r"^[A-Za-z]+(?:[ '-][A-Za-z]+)*$",
+    "Use letters, spaces, hyphens, or apostrophes only.",
 )
-six_digit_code = RegexValidator(r'^[0-9]{4,6}$', 'Enter a valid postal code.')
-cnic_format = RegexValidator(r'^\d{5}-\d{7}-\d$', 'Format: 12345-1234567-1.')
+pakistani_phone = RegexValidator(
+    r"^92\d{10}$",
+    "Enter a valid phone number starting with 92 followed by 10 digits.",
+)
+six_digit_code = RegexValidator(r"^[0-9]{4,6}$", "Enter a valid postal code.")
+cnic_format = RegexValidator(r"^\d{5}-\d{7}-\d$", "Format: 12345-1234567-1.")
 
 SECTION_STATUS_CHOICES = [
     ("not_started", "Not Started"),
@@ -24,6 +30,7 @@ SECTION_STATUS_CHOICES = [
 ]
 
 NATIONALITY_CHOICES = [
+<<<<<<< ours
     ('Pakistani', 'Pakistani'),
     ('Other', 'Other'),
 ]
@@ -52,7 +59,34 @@ class Application(models.Model):
     Root application object that tracks overall status and timestamps.
     Application-specific data is split into separate Section models.
     """
+    ("Pakistani", "Pakistani"),
+    ("Other", "Other"),
+]
 
+RELIGION_CHOICES = [
+    ("Islam", "Islam"),
+    ("Christianity", "Christianity"),
+    ("Hinduism", "Hinduism"),
+    ("Sikhism", "Sikhism"),
+    ("Other", "Other"),
+]
+
+PROVINCE_CHOICES = [
+    ("Punjab", "Punjab"),
+    ("Sindh", "Sindh"),
+    ("Khyber Pakhtunkhwa", "Khyber Pakhtunkhwa"),
+    ("Balochistan", "Balochistan"),
+    ("Gilgit-Baltistan", "Gilgit-Baltistan"),
+    ("Azad Jammu & Kashmir", "Azad Jammu & Kashmir"),
+    ("Islamabad Capital Territory", "Islamabad Capital Territory"),
+]
+
+>>>>>>> theirs
+
+# ---------------------------------------------------------------------------
+# Core Application record — lightweight, no personal/academic fields
+# ---------------------------------------------------------------------------
+class Application(models.Model):
     STATUS_CHOICES = [
         ("draft", "Draft"),
         ("ready", "Ready for Submission"),
@@ -63,6 +97,7 @@ class Application(models.Model):
         ("rejected", "Rejected"),
     ]
 
+<<<<<<< ours
     applicant = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="application"
     )
@@ -310,6 +345,15 @@ class GuardianInfo(models.Model):
     emergency_contact_relationship = models.CharField(max_length=50, blank=True)
     emergency_contact_number = models.CharField(max_length=12, validators=[pakistani_phone], blank=True)
     
+    GENDER_CHOICES = [("male", "Male"), ("female", "Female"), ("other", "Other")]
+
+    applicant = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="applications",
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="draft")
+    declaration_accepted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -319,6 +363,109 @@ class GuardianInfo(models.Model):
 
     def __str__(self):
         return f"Guardian Info: {self.application.applicant}"
+    # ------------------------------------------------------------------
+    # Section-status convenience aliases
+    # ------------------------------------------------------------------
+    SECTION_KEYS = [
+        "personal_info_status",
+        "contact_address_status",
+        "academic_info_status",
+        "guardian_info_status",
+        "additional_info_status",
+        "documents_status",
+    ]
+    SECTION_LABELS = {
+        "personal_info_status": "Personal Information",
+        "contact_address_status": "Contact & Address",
+        "academic_info_status": "Academic Information",
+        "guardian_info_status": "Guardian Information",
+        "additional_info_status": "Additional Information",
+        "documents_status": "Documents",
+    }
+
+    def __str__(self):
+        return f"Application: {self.applicant}"
+
+    def _section_status(self, related_name, field):
+        """Helper: fetch a status field from a related one-to-one section."""
+        try:
+            return getattr(getattr(self, related_name), field)
+        except Exception:
+            return "not_started"
+
+    # Section statuses (read from sub-models)
+    @property
+    def personal_info_status(self):
+        return self._section_status("personal_info", "personal_info_status")
+
+    @property
+    def contact_address_status(self):
+        return self._section_status("contact_address", "contact_address_status")
+
+    @property
+    def academic_info_status(self):
+        return self._section_status("academic_info", "academic_info_status")
+
+    @property
+    def guardian_info_status(self):
+        return self._section_status("guardian_info", "guardian_info_status")
+
+    @property
+    def additional_info_status(self):
+        return self._section_status("additional_info", "additional_info_status")
+
+    @property
+    def documents_status(self):
+        return self._section_status("documents_summary", "documents_status")
+
+    # Delegate commonly-templated personal fields → PersonalInfo sub-model
+    def _pi(self, attr, default=""):
+        try:
+            return getattr(self.personal_info, attr) or default
+        except Exception:
+            return default
+
+    @property
+    def first_name(self):
+        return self._pi("first_name")
+
+    @property
+    def last_name(self):
+        return self._pi("last_name")
+
+    @property
+    def full_name(self):
+        f, l = self.first_name, self.last_name
+        return f"{f} {l}".strip() or self.applicant.get_full_name() or self.applicant.username
+
+    @property
+    def student_photo(self):
+        return self._pi("student_photo")
+
+    @property
+    def student_photo_type(self):
+        return self._pi("student_photo_type", "image/jpeg")
+
+    @property
+    def phone(self):
+        try:
+            return self.contact_address.phone
+        except Exception:
+            return ""
+
+    @property
+    def intermediate_result(self):
+        try:
+            return self.academic_info.intermediate_result
+        except Exception:
+            return ""
+
+    # ------------------------------------------------------------------
+    # Computed progress
+    # ------------------------------------------------------------------
+    @property
+    def sections_completed_count(self):
+        return sum(1 for key in self.SECTION_KEYS if getattr(self, key) == "completed")
 
 
 class AdditionalInfo(models.Model):
@@ -339,9 +486,207 @@ class AdditionalInfo(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+
     class Meta:
         verbose_name = 'Additional Information'
         verbose_name_plural = 'Additional Information'
 
     def __str__(self):
         return f"Additional Info: {self.application.applicant}"
+
+    @property
+    def checklist(self):
+        return [
+            {
+                "key": key,
+                "name": self.SECTION_LABELS[key],
+                "status_key": getattr(self, key).replace("_", ""),
+                "status_label": dict(SECTION_STATUS_CHOICES)[getattr(self, key)],
+            }
+            for key in self.SECTION_KEYS
+        ]
+
+    @property
+    def is_ready_for_submission(self):
+        return (
+            self.sections_completed_count == self.sections_total
+            and self.status == "draft"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Section: Personal Information
+# ---------------------------------------------------------------------------
+class PersonalInfo(models.Model):
+    application = models.OneToOneField(
+        Application, on_delete=models.CASCADE, related_name="personal_info"
+    )
+    personal_info_status = models.CharField(
+        max_length=20, choices=SECTION_STATUS_CHOICES, default="not_started"
+    )
+    first_name = models.CharField(max_length=30, validators=[letters_only], blank=True)
+    last_name = models.CharField(max_length=30, validators=[letters_only], blank=True)
+    father_name = models.CharField(
+        max_length=50, validators=[letters_and_spaces], blank=True
+    )
+    mother_name = models.CharField(
+        max_length=50, validators=[letters_and_spaces], blank=True
+    )
+    cnic_or_bform = models.CharField(
+        "CNIC / B-Form Number",
+        max_length=15,
+        validators=[cnic_format],
+        unique=True,
+        blank=True,
+        null=True,
+    )
+    date_of_birth = models.DateField(null=True, blank=True)
+    gender = models.CharField(max_length=10, choices=Application.GENDER_CHOICES, blank=True)
+    religion = models.CharField(max_length=50, blank=True)
+    nationality = models.CharField(max_length=50, blank=True, default="Pakistani")
+    blood_group = models.CharField(max_length=5, blank=True)
+    marital_status = models.CharField(max_length=12, blank=True)
+    student_photo = models.TextField(blank=True, null=True)
+    student_photo_type = models.CharField(max_length=20, blank=True)
+
+    def __str__(self):
+        return f"PersonalInfo: {self.application}"
+
+
+# ---------------------------------------------------------------------------
+# Section: Contact & Address
+# ---------------------------------------------------------------------------
+class ContactAddress(models.Model):
+    application = models.OneToOneField(
+        Application, on_delete=models.CASCADE, related_name="contact_address"
+    )
+    contact_address_status = models.CharField(
+        max_length=20, choices=SECTION_STATUS_CHOICES, default="not_started"
+    )
+    phone = models.CharField(max_length=12, validators=[pakistani_phone], blank=True)
+    alternate_phone = models.CharField(
+        max_length=12, validators=[pakistani_phone], blank=True
+    )
+    permanent_address = models.TextField(max_length=200, blank=True)
+    present_address = models.TextField(max_length=200, blank=True)
+    city = models.CharField(
+        max_length=30, validators=[letters_and_spaces], blank=True
+    )
+    province = models.CharField(max_length=30, choices=PROVINCE_CHOICES, blank=True)
+    postal_code = models.CharField(
+        max_length=6, validators=[six_digit_code], blank=True
+    )
+    district = models.CharField(
+        max_length=30, validators=[letters_and_spaces], blank=True
+    )
+    domicile_province = models.CharField(
+        max_length=30, choices=PROVINCE_CHOICES, blank=True
+    )
+    domicile_district = models.CharField(
+        max_length=30, validators=[letters_and_spaces], blank=True
+    )
+
+    def __str__(self):
+        return f"ContactAddress: {self.application}"
+
+
+# ---------------------------------------------------------------------------
+# Section: Academic Information
+# ---------------------------------------------------------------------------
+class AcademicInfo(models.Model):
+    application = models.OneToOneField(
+        Application, on_delete=models.CASCADE, related_name="academic_info"
+    )
+    academic_info_status = models.CharField(
+        max_length=20, choices=SECTION_STATUS_CHOICES, default="not_started"
+    )
+    matric_board = models.CharField("Matric Group", max_length=150, blank=True)
+    matric_year = models.PositiveIntegerField(null=True, blank=True)
+    matric_marks = models.PositiveIntegerField(null=True, blank=True)
+    matric_total_marks = models.PositiveIntegerField(null=True, blank=True)
+    matric_grade = models.CharField(max_length=20, blank=True)
+    intermediate_result = models.CharField(max_length=20, blank=True)
+    intermediate_board = models.CharField(
+        "Intermediate / A-Level Board", max_length=150, blank=True
+    )
+    intermediate_group = models.CharField(max_length=50, blank=True)
+    intermediate_year = models.PositiveIntegerField(null=True, blank=True)
+    intermediate_marks = models.PositiveIntegerField(null=True, blank=True)
+    intermediate_total_marks = models.PositiveIntegerField(null=True, blank=True)
+    intermediate_grade = models.CharField(max_length=20, blank=True)
+    degree_program = models.CharField(max_length=100, blank=True)
+
+    def __str__(self):
+        return f"AcademicInfo: {self.application}"
+
+
+# ---------------------------------------------------------------------------
+# Section: Guardian Information
+# ---------------------------------------------------------------------------
+class GuardianInfo(models.Model):
+    application = models.OneToOneField(
+        Application, on_delete=models.CASCADE, related_name="guardian_info"
+    )
+    guardian_info_status = models.CharField(
+        max_length=20, choices=SECTION_STATUS_CHOICES, default="not_started"
+    )
+    guardian_name = models.CharField(
+        max_length=150, validators=[letters_and_spaces], blank=True
+    )
+    guardian_relationship = models.CharField(max_length=50, blank=True)
+    guardian_cnic = models.CharField(
+        max_length=15, validators=[cnic_format], blank=True
+    )
+    guardian_occupation = models.CharField(max_length=150, blank=True)
+    guardian_phone = models.CharField(
+        max_length=12, validators=[pakistani_phone], blank=True
+    )
+    guardian_email = models.EmailField(blank=True)
+    guardian_address = models.TextField(blank=True)
+    guardian_income = models.CharField(max_length=50, blank=True)
+    emergency_contact_name = models.CharField(
+        max_length=150, validators=[letters_and_spaces], blank=True
+    )
+    emergency_contact_relationship = models.CharField(max_length=50, blank=True)
+    emergency_contact_number = models.CharField(
+        max_length=12, validators=[pakistani_phone], blank=True
+    )
+
+    def __str__(self):
+        return f"GuardianInfo: {self.application}"
+
+
+# ---------------------------------------------------------------------------
+# Section: Additional Information
+# ---------------------------------------------------------------------------
+class AdditionalInfo(models.Model):
+    application = models.OneToOneField(
+        Application, on_delete=models.CASCADE, related_name="additional_info"
+    )
+    additional_info_status = models.CharField(
+        max_length=20, choices=SECTION_STATUS_CHOICES, default="not_started"
+    )
+    hostel_required = models.BooleanField(null=True, blank=True)
+    scholarship_required = models.BooleanField(null=True, blank=True)
+    disability_status = models.BooleanField(null=True, blank=True)
+
+    def __str__(self):
+        return f"AdditionalInfo: {self.application}"
+
+
+# ---------------------------------------------------------------------------
+# Section: Documents summary status (aggregated by documents app)
+# ---------------------------------------------------------------------------
+class DocumentsSummary(models.Model):
+    """Holds the rolled-up documents_status so Application can read it
+    without importing from the documents app (avoids circular imports)."""
+    application = models.OneToOneField(
+        Application, on_delete=models.CASCADE, related_name="documents_summary"
+    )
+    documents_status = models.CharField(
+        max_length=20, choices=SECTION_STATUS_CHOICES, default="not_started"
+    )
+
+    def __str__(self):
+        return f"DocumentsSummary: {self.application}"
+

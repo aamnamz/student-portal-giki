@@ -5,14 +5,14 @@
 {% block content %}
 
   <!-- 1. WELCOME -->
-  <div class="hero">
+  <div class="hero d-flex flex-wrap justify-content-between align-items-start gap-4">
     <div>
       <h2>{{ applicant_name|default:"Applicant" }}</h2>
       <p class="applicant-email">{{ applicant_email|default:"Email not provided" }}</p>
       <p class="today-date">{{ today|date:"l, F j, Y" }}</p>
       <p>Pick up where you left off — complete every section below before the deadline to keep your application on track.</p>
     </div>
-    <div class="deadline-chip">
+    <div class="deadline-chip d-inline-flex align-items-center gap-2">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
       Application deadline: {{ application_deadline|default:"Aug 30, 2026" }}
     </div>

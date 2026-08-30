@@ -11,21 +11,59 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!link.target && !link.hasAttribute('download') && !link.getAttribute('href').startsWith('#')) showPageLoader();
     });
   });
+
   var portal = document.getElementById('portal');
   var toggle = document.getElementById('sidebarToggle');
   var scrim = document.getElementById('sidebarScrim');
+  var mobileQuery = window.matchMedia('(max-width: 860px)');
 
-  function setNav(open) {
+  // Mobile: slide-in / offcanvas sidebar
+  function setNavOpen(open) {
     if (!portal) return;
     portal.classList.toggle('nav-open', open);
     if (toggle) toggle.setAttribute('aria-expanded', String(open));
   }
-  function closeNav() { setNav(false); }
-  if (toggle) toggle.addEventListener('click', function () { setNav(!portal.classList.contains('nav-open')); });
+  function closeNav() { setNavOpen(false); }
+
+  // Desktop/tablet: collapse sidebar to icon-only rail
+  function setSidebarCollapsed(collapsed) {
+    if (!portal) return;
+    portal.classList.toggle('sidebar-collapsed', collapsed);
+    if (toggle) toggle.setAttribute('aria-expanded', String(!collapsed));
+  }
+
+  if (toggle) {
+    toggle.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (mobileQuery.matches) {
+        setNavOpen(!portal.classList.contains('nav-open'));
+      } else {
+        setSidebarCollapsed(!portal.classList.contains('sidebar-collapsed'));
+      }
+    });
+  }
+
+  // Click outside (the scrim) closes the mobile offcanvas menu
   if (scrim) scrim.addEventListener('click', closeNav);
+
+  // Esc closes the mobile offcanvas menu
   document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape') closeNav();
   });
+
+  // Reset both sidebar states when crossing the mobile/desktop breakpoint,
+  // so resizing the window never leaves the sidebar in a stuck state.
+  function handleBreakpointChange() {
+    if (!portal) return;
+    portal.classList.remove('nav-open');
+    portal.classList.remove('sidebar-collapsed');
+    if (toggle) toggle.setAttribute('aria-expanded', 'false');
+  }
+  if (typeof mobileQuery.addEventListener === 'function') {
+    mobileQuery.addEventListener('change', handleBreakpointChange);
+  } else if (typeof mobileQuery.addListener === 'function') {
+    mobileQuery.addListener(handleBreakpointChange);
+  }
 
   var applicationToggle = document.querySelector('.application-toggle');
   var applicationSubnav = document.getElementById('applicationSubnav');

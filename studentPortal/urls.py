@@ -7,7 +7,7 @@ from allauth.socialaccount.providers.google.views import oauth2_callback as goog
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("dashboard.urls")),
-    path("application/", include("applications.urls")),
+    path("applications/", include("applications.urls")),
     path("documents/", include("documents.urls")),
     path("accounts/", include("accounts.urls")),
     path("accounts/", include("allauth.urls")),

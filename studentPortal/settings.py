@@ -50,6 +50,16 @@ ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 if DEBUG:
     ALLOWED_HOSTS.extend(["localhost", "127.0.0.1"])
 
+SECRET_KEY = os.getenv("SECRET_KEY", 'django-insecure-#r0_(r(!hkjlyp0p@puoy7-ye*+i8q@7mmf%xup$a6ku=$3xka')
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = os.getenv("DEBUG", "True").lower() == "true"
+
+ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h.strip()]
+
+
+# Custom user model
+AUTH_USER_MODEL = 'accounts.User'
 
 # Application definition
 
@@ -70,6 +80,23 @@ INSTALLED_APPS = [
     'documents',
     'applications',
 ]
+
+# In-memory cache — used for API rate limiting
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}
+
+# Production security headers (only when DEBUG is off)
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
 
 SITE_ID = 1
 

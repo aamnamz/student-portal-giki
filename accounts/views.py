@@ -70,7 +70,14 @@ def my_profile(request):
 @login_required
 def settings_view(request):
     profile, _ = Profile.objects.get_or_create(user=request.user)
+    success = False
+    if request.method == "POST":
+        profile.email_notifications = request.POST.get("email_notifications") == "on"
+        profile.sms_notifications = request.POST.get("sms_notifications") == "on"
+        profile.save()
+        success = True
     return render(request, "accounts/settings.html", {
         "active_nav": "settings",
         "profile": profile,
+        "success": success,
     })
