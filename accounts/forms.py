@@ -1,9 +1,9 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
-from django.contrib.auth.models import User
 from django.core.validators import RegexValidator
 
-from .models import Profile, pakistani_phone
+from .models import CustomUser, Profile, pakistani_phone
+
 
 class StyledFormMixin:
     """Adds the CSS classes our templates expect (form-control /
@@ -28,12 +28,12 @@ class SignUpForm(StyledFormMixin, UserCreationForm):
     last_name = forms.CharField(max_length=150, required=True, validators=[name_validator])
     email = forms.EmailField(required=True)
     phone_number = forms.CharField(
-    max_length=12,
-    required=False,
-    validators=[pakistani_phone],
-    widget=forms.TextInput(
-        attrs={"placeholder": "923XXXXXXXXX"}
-    ),
+        max_length=12,
+        required=False,
+        validators=[pakistani_phone],
+        widget=forms.TextInput(
+            attrs={"placeholder": "923XXXXXXXXX"}
+        ),
     )
     agree_terms = forms.BooleanField(
         required=True,
@@ -41,21 +41,21 @@ class SignUpForm(StyledFormMixin, UserCreationForm):
     )
 
     class Meta:
-        model = User
+        model = CustomUser
         fields = (
-    "first_name",
-    "last_name",
-    "username",
-    "email",
-    "phone_number",
-    "password1",
-    "password2",
-    "agree_terms",
-)
+            "first_name",
+            "last_name",
+            "username",
+            "email",
+            "phone_number",
+            "password1",
+            "password2",
+            "agree_terms",
+        )
 
     def clean_email(self):
         email = self.cleaned_data["email"].strip().lower()
-        if User.objects.filter(email__iexact=email).exists():
+        if CustomUser.objects.filter(email__iexact=email).exists():
             raise forms.ValidationError("An account with this email address already exists.")
         return email
 
