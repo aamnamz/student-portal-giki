@@ -6,10 +6,12 @@ from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 
-from .models import Application
+from .models import Application, PersonalInfo, ContactAddress, AcademicInfo, GuardianInfo, AdditionalInfo
 from .ai_models import validate_passport_image
-from .forms import (AcademicInformationForm, AdditionalInformationForm, ContactAddressForm,
-                    DeclarationForm, GuardianInformationForm, PersonalInformationForm)
+from .forms import (
+    AcademicInformationForm, AdditionalInformationForm, ContactAddressForm,
+    DeclarationForm, GuardianInformationForm, PersonalInformationForm
+)
 
 STATUS_TIMELINE_STEPS = [
     "Registration",
@@ -54,7 +56,8 @@ def my_application(request):
 @login_required
 def step_personal_information(request):
     application, _ = Application.objects.get_or_create(applicant=request.user)
-    return _step(request, application, PersonalInformationForm, "personal_info_status", "step_contact_address", "Personal Information", "Upload a passport-size student photo. JPG, PNG, or PDF files are accepted.")
+    personal_info, _ = PersonalInfo.objects.get_or_create(application=application)
+    return _step_personal(request, application, personal_info, PersonalInformationForm, "step_contact_address", "Personal Information", "Upload a passport-size student photo. JPG, PNG, or PDF files are accepted.")
 
 
 @login_required
@@ -90,38 +93,40 @@ def _extract_json_image(request):
 @login_required
 def step_contact_address(request):
     application, _ = Application.objects.get_or_create(applicant=request.user)
-    return _step(request, application, ContactAddressForm, "contact_address_status", "step_guardian_information", "Contact & Address", "Enter a current contact number and full address.")
+    contact_address, _ = ContactAddress.objects.get_or_create(application=application)
+    return _step(request, contact_address, ContactAddressForm, "contact_address_status", "step_guardian_information", "Contact & Address", "Enter a current contact number and full address.")
 
 
 @login_required
 def step_academic_information(request):
     application, _ = Application.objects.get_or_create(applicant=request.user)
-    return _step(request, application, AcademicInformationForm, "academic_info_status", "step_additional_information", "Academic Information", "Intermediate fields are required unless you select Result Awaited.")
+    academic_info, _ = AcademicInfo.objects.get_or_create(application=application)
+    return _step(request, academic_info, AcademicInformationForm, "academic_info_status", "step_additional_information", "Academic Information", "Intermediate fields are required unless you select Result: Awaited.")
 
 
 @login_required
 def step_guardian_information(request):
     application, _ = Application.objects.get_or_create(applicant=request.user)
-    return _step(request, application, GuardianInformationForm, "guardian_info_status", "step_academic_information", "Guardian & Emergency Contact", "Provide a guardian and an emergency contact who can be reached promptly.")
+    guardian_info, _ = GuardianInfo.objects.get_or_create(application=application)
+    return _step(request, guardian_info, GuardianInformationForm, "guardian_info_status", "step_academic_information", "Guardian & Emergency Contact", "Provide a guardian and an emergency contact who can be reached.")
 
 
 @login_required
 def step_additional_information(request):
     application, _ = Application.objects.get_or_create(applicant=request.user)
-    return _step(request, application, AdditionalInformationForm, "additional_info_status", "documents", "Additional Information", "Answer each requirement so Admissions can make suitable arrangements.")
+    additional_info, _ = AdditionalInfo.objects.get_or_create(application=application)
+    return _step(request, additional_info, AdditionalInformationForm, "additional_info_status", "documents", "Additional Information", "Answer each requirement so Admissions can make suitable arrangements.")
 
 
-def _step(request, application, form_class, status_field, next_route, title, guidance):
-    form = form_class(request.POST or None, request.FILES or None, instance=application)
+def _step_personal(request, application, section_obj, form_class, next_route, title, guidance):
+    """Handler for PersonalInfo section with photo upload."""
+    form = form_class(request.POST or None, request.FILES or None, instance=section_obj)
 
     if request.method == "POST" and form.is_valid():
-
-        # Get the actual uploaded file, not the Base64 string from cleaned_data
         uploaded_photo = request.FILES.get("student_photo")
 
         if uploaded_photo:
             uploaded_photo.seek(0)
-
             # AI validation
             is_valid, error_message = validate_passport_image(uploaded_photo)
 
@@ -149,21 +154,12 @@ def _step(request, application, form_class, status_field, next_route, title, gui
             updated.student_photo = base64.b64encode(
                 uploaded_photo.read()
             ).decode("ascii")
-
             updated.student_photo_type = (
                 uploaded_photo.content_type or "image/jpeg"
             )
 
-        updated.full_name = (
-            f"{updated.first_name} {updated.last_name}"
-        ).strip() or updated.full_name
-
-        setattr(updated, status_field, "completed")
+        updated.status = "completed"
         updated.save()
-
-        if status_field == "academic_info_status":
-            from documents.views import update_documents_status
-            update_documents_status(updated)
 
         return redirect(next_route)
 
@@ -173,6 +169,35 @@ def _step(request, application, form_class, status_field, next_route, title, gui
         {
             "active_nav": "application",
             "application": application,
+            "form": form,
+            "title": title,
+            "guidance": guidance,
+        },
+    )
+
+
+def _step(request, section_obj, form_class, status_field, next_route, title, guidance):
+    """Generic handler for non-photo form sections."""
+    form = form_class(request.POST or None, instance=section_obj)
+
+    if request.method == "POST" and form.is_valid():
+        updated = form.save(commit=False)
+        updated.status = "completed"
+        updated.save()
+
+        # Update documents status if academic info was completed
+        if status_field == "academic_info_status":
+            from documents.views import update_documents_status
+            update_documents_status(section_obj.application)
+
+        return redirect(next_route)
+
+    return render(
+        request,
+        "applications/step_form.html",
+        {
+            "active_nav": "application",
+            "application": section_obj.application,
             "form": form,
             "title": title,
             "guidance": guidance,
@@ -215,9 +240,14 @@ def submit_application(request):
 def reset_application(request):
     application, _ = Application.objects.get_or_create(applicant=request.user)
     if request.method == "POST":
-        for field in application._meta.fields:
-            if field.name.endswith("_status"):
-                setattr(application, field.name, "not_started")
+        # Reset all section statuses
+        PersonalInfo.objects.filter(application=application).update(status="not_started")
+        ContactAddress.objects.filter(application=application).update(status="not_started")
+        AcademicInfo.objects.filter(application=application).update(status="not_started")
+        GuardianInfo.objects.filter(application=application).update(status="not_started")
+        AdditionalInfo.objects.filter(application=application).update(status="not_started")
+        
+        # Reset application status
         application.status = "draft"
         application.declaration_accepted = False
         application.save()

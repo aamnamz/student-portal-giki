@@ -8,17 +8,36 @@ from .models import Document
 
 
 def required_document_types(application):
+    """Determine required documents based on academic info."""
     required = ["cnic_bform", "father_cnic", "matric_certificate", "domicile_certificate"]
-    if application.intermediate_result != "awaited":
-        required.append("intermediate_certificate")
+    
+    # Check if intermediate result is awaited
+    try:
+        if application.academic_info.intermediate_result != "awaited":
+            required.append("intermediate_certificate")
+    except:
+        # academic_info doesn't exist yet
+        pass
+    
     return required
 
 
 def update_documents_status(application):
+    """Update the Application's documents_status based on Document objects.
+    This is called after academic info is completed."""
+    from applications.models import Document as AppDocument
+    
     required = required_document_types(application)
     uploaded = set(application.documents.filter(file__isnull=False).exclude(file="").values_list("doc_type", flat=True))
-    application.documents_status = "completed" if all(doc_type in uploaded for doc_type in required) else "not_started"
-    application.save(update_fields=["documents_status", "updated_at"])
+    
+    # documents_status is a @property, so we can't set it directly
+    # But the property is computed from Document objects, so just ensure
+    # the documents exist in the database
+    required_types = required_document_types(application)
+    existing_types = set(application.documents.values_list("doc_type", flat=True))
+    for doc_type, _label in Document.DOC_TYPES:
+        if doc_type not in existing_types:
+            Document.objects.create(application=application, doc_type=doc_type)
 
 
 @login_required

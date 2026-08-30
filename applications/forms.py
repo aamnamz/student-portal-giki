@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Application
+from .models import Application, PersonalInfo, ContactAddress, AcademicInfo, GuardianInfo, AdditionalInfo
 
 
 class PortalForm(forms.ModelForm):
@@ -29,15 +29,16 @@ class PersonalInformationForm(PortalForm):
     student_photo = forms.ImageField(required=False)
 
     class Meta:
-        model = Application
+        model = PersonalInfo
         fields = ["student_photo", "first_name", "last_name", "father_name", "mother_name", "date_of_birth", "cnic_or_bform", "blood_group", "gender", "marital_status", "nationality", "religion"]
-        widgets = {"date_of_birth": forms.DateInput(attrs={"type": "date"}), 
-                   "blood_group": forms.Select(choices=[("", "Select blood group"), ("A+", "A+"), ("A-", "A-"), ("B+", "B+"), ("B-", "B-"), ("AB+", "AB+"), ("AB-", "AB-"), ("O+", "O+"), ("O-", "O-")]), 
-                   "gender": forms.Select(choices=[("", "Select gender"), *Application.GENDER_CHOICES]), 
-                   "marital_status": forms.Select(choices=[("", "Select marital status"), ("single", "Single"), ("married", "Married")]), 
-                   "nationality": forms.Select(choices=[("", "Select nationality"), ("Pakistani", "Pakistani"), ("Other", "Other")]), 
-                   "religion": forms.Select(choices=[("", "Select religion"), ("Islam", "Islam"), ("Christianity", "Christianity"), ("Hinduism", "Hinduism"), ("Sikhism", "Sikhism"), ("Other", "Other")])
-                   }
+        widgets = {
+            "date_of_birth": forms.DateInput(attrs={"type": "date"}),
+            "blood_group": forms.Select(choices=[("" , "Select blood group"), ("A+", "A+"), ("A-", "A-"), ("B+", "B+"), ("B-", "B-"), ("AB+", "AB+"), ("AB-", "AB-"), ("O+", "O+"), ("O-", "O-")]),
+            "gender": forms.Select(choices=[("" , "Select gender"), *PersonalInfo.GENDER_CHOICES]),
+            "marital_status": forms.Select(choices=[("" , "Select marital status"), ("single", "Single"), ("married", "Married")]),
+            "nationality": forms.Select(choices=[("" , "Select nationality"), ("Pakistani", "Pakistani"), ("Other", "Other")]),
+            "religion": forms.Select(choices=[("" , "Select religion"), ("Islam", "Islam"), ("Christianity", "Christianity"), ("Hinduism", "Hinduism"), ("Sikhism", "Sikhism"), ("Other", "Other")]),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -46,16 +47,24 @@ class PersonalInformationForm(PortalForm):
 
 class ContactAddressForm(PortalForm):
     class Meta:
-        model = Application
+        model = ContactAddress
         fields = ["phone", "alternate_phone", "present_address", "permanent_address", "city", "district", "province", "postal_code", "domicile_province", "domicile_district"]
-        widgets = {"present_address": forms.Textarea(attrs={"rows": 4, "maxlength": 200}), "permanent_address": forms.Textarea(attrs={"rows": 4, "maxlength": 200}), "province": forms.Select(choices=[("", "Select province"), *Application._meta.get_field("province").choices]), "domicile_province": forms.Select(choices=[("", "Select domicile province"), *Application._meta.get_field("domicile_province").choices])}
+        widgets = {
+            "present_address": forms.Textarea(attrs={"rows": 4, "maxlength": 200}),
+            "permanent_address": forms.Textarea(attrs={"rows": 4, "maxlength": 200}),
+            "province": forms.Select(choices=[("" , "Select province")] + ContactAddress._meta.get_field('province').choices),
+            "domicile_province": forms.Select(choices=[("" , "Select province")] + ContactAddress._meta.get_field('domicile_province').choices),
+        }
 
 
 class AcademicInformationForm(PortalForm):
     class Meta:
-        model = Application
-        fields = ["matric_board", "matric_year", "matric_total_marks", "matric_marks", "matric_grade", "intermediate_result", "intermediate_board", "intermediate_group", "intermediate_year", "intermediate_total_marks", "intermediate_marks", "intermediate_grade", "degree_program"]
-        widgets = {"matric_board": forms.Select(choices=[("", "Select matric group"), ("Biology", "Biology"), ("Computer", "Computer")]), "intermediate_result": forms.Select(choices=[("", "Select intermediate result"), ("passed", "Result Available"), ("awaited", "Result Awaited")]), "intermediate_group": forms.Select(choices=[("", "Select group"), ("Pre-Engineering", "Pre-Engineering"), ("Pre-Medical", "Pre-Medical"), ("Computer Science", "Computer Science"), ("Humanities", "Humanities"), ("Commerce", "Commerce")]), "degree_program": forms.Select(choices=[("", "Select degree program"), ("BS Aerospace Engineering", "BS Aerospace Engineering"), ("BS Computer Science", "BS Computer Science"), ("BS Cybersecurity", "BS Cybersecurity"), ("BS Data Science", "BS Data Science"), ("BS Chemical Engineering", "BS Chemical Engineering"), ("BS Software Engineering", "BS Software Engineering"), ("BS Civil Engineering", "BS Civil Engineering"), ("BS Mechanical Engineering", "BS Mechanical Engineering")])}
+        model = AcademicInfo
+        fields = ["matric_board", "matric_year", "matric_total_marks", "matric_marks", "matric_grade", "intermediate_result", "intermediate_board", "intermediate_group", "intermediate_year", "intermediate_total_marks", "intermediate_marks", "intermediate_grade", "entry_test_score", "degree_program"]
+        widgets = {
+            "matric_board": forms.Select(choices=[("" , "Select matric group"), ("Biology", "Biology"), ("Computer", "Computer")]),
+            "intermediate_result": forms.Select(choices=[("" , "Select result"), ("passed", "Passed"), ("awaited", "Awaited")]),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -71,14 +80,18 @@ class AcademicInformationForm(PortalForm):
 
 class GuardianInformationForm(PortalForm):
     class Meta:
-        model = Application
-        fields = ["guardian_name", "guardian_relationship", "guardian_occupation", "guardian_phone", "guardian_cnic", "guardian_income", "emergency_contact_name", "emergency_contact_relationship", "emergency_contact_number"]
-        widgets = {"guardian_relationship": forms.Select(choices=[("", "Select relationship"), ("Father", "Father"), ("Mother", "Mother"), ("Brother", "Brother"), ("Sister", "Sister"), ("Uncle", "Uncle"), ("Legal Guardian", "Legal Guardian"), ("Other", "Other")])}
+        model = GuardianInfo
+        fields = ["guardian_name", "guardian_relationship", "guardian_occupation", "guardian_phone", "guardian_cnic", "guardian_income", "emergency_contact_name", "emergency_contact_relationship", "emergency_contact_number", "guardian_email", "guardian_address"]
+        widgets = {
+            "guardian_relationship": forms.Select(choices=[("" , "Select relationship"), ("Father", "Father"), ("Mother", "Mother"), ("Brother", "Brother"), ("Sister", "Sister"), ("Uncle", "Uncle"), ("Aunt", "Aunt"), ("Other", "Other")]),
+            "guardian_address": forms.Textarea(attrs={"rows": 4, "maxlength": 200}),
+            "emergency_contact_relationship": forms.Select(choices=[("" , "Select relationship"), ("Father", "Father"), ("Mother", "Mother"), ("Brother", "Brother"), ("Sister", "Sister"), ("Friend", "Friend"), ("Other", "Other")]),
+        }
 
 
 class AdditionalInformationForm(PortalForm):
     class Meta:
-        model = Application
+        model = AdditionalInfo
         fields = ["hostel_required", "scholarship_required", "disability_status"]
         widgets = {
             "hostel_required": forms.RadioSelect(choices=[(True, "Yes"), (False, "No")]),
@@ -94,6 +107,7 @@ class AdditionalInformationForm(PortalForm):
 
 class DeclarationForm(PortalForm):
     declaration_accepted = forms.BooleanField(label="I certify that the information provided is true.")
+    
     class Meta:
         model = Application
         fields = ["declaration_accepted"]
