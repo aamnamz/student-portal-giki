@@ -161,6 +161,57 @@ body {
     line-height: 1.55;
 }
 
+/* =========================================================
+   PROGRAM TOGGLE (signup) — segmented single-select control
+   ========================================================= */
+
+.program-toggle {
+    display: flex;
+    gap: 0.6rem;
+}
+
+.program-toggle .program-option {
+    position: relative;
+    flex: 1 1 0;
+}
+
+.program-toggle input[type="radio"] {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.program-toggle .btn-program {
+    display: block;
+    text-align: center;
+    padding: 0.65rem 1rem;
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--off-white);
+    color: #2a3145;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.program-toggle .btn-program:hover {
+    border-color: var(--navy-accent);
+}
+
+.program-toggle input[type="radio"]:checked ~ .btn-program {
+    background: var(--navy-900);
+    border-color: var(--navy-900);
+    color: var(--white);
+}
+
+.program-toggle input[type="radio"]:focus-visible ~ .btn-program {
+    box-shadow: 0 0 0 0.2rem rgba(47, 93, 199, 0.25);
+}
+
 /* Inputs — Bootstrap .form-control skinned to match brand */
 
 .auth-card .form-control {

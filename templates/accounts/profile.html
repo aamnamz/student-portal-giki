@@ -1,44 +1,104 @@
 {% extends "base.html" %}
 {% block title %}My Profile{% endblock %}{% block page_title %}My Profile{% endblock %}
-{% block content %}<div class="page-intro">
+{% block content %}
+<div class="page-intro">
     <div>
         <h2>My profile</h2>
-        <p>Your personal account details for the applicant portal.</p>
+        <p>Manage your account profile and verify application identity details.</p>
     </div>
 </div>
-<section class="card form-card">
-    <div class="profile-summary">{% if application.student_photo %}<div class="profile-photo-display"><img
-                src="data:{{ application.student_photo_type }};base64,{{ application.student_photo }}"
-                alt="{{ request.user.get_full_name|default:request.user.username }}"></div>
-        <div>
-            <h3>Your student photo</h3>
-            <p>Uploaded with your application.</p>
-        </div>{% else %}<form method="post" enctype="multipart/form-data" class="profile-photo-upload">
-            {% csrf_token %}
-            <label class="profile-photo-display profile-photo-display--upload" for="profileStudentPhoto"><svg
-                    viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <circle cx="12" cy="8" r="4" />
-                    <path d="M4 20c0-3.7 3.6-6.5 8-6.5s8 2.8 8 6.5" />
-                </svg><span>Upload</span></label><input id="profileStudentPhoto" type="file" name="student_photo"
-                accept="image/*" required>
-            <div>
-                <h3>Add your student photo</h3>
-                <p>Click the circle to select a clear, passport-size photo.</p>{% if photo_error %}<p
-                    class="field-error">{{ photo_error }}</p>{% endif %}
-            </div>
-        </form>{% endif %}
-    </div>
-    <div class="form-section">
-        <h3>Account details</h3>
-        <div class="field-grid">
-            <div class="field"><label>First name</label><input value="{{ request.user.first_name }}" readonly></div>
-            <div class="field"><label>Last name</label><input value="{{ request.user.last_name }}" readonly></div>
-            <div class="field"><label>Email address</label><input value="{{ request.user.email }}" readonly></div>
-            <div class="field"><label>Phone number</label><input value="{% if application.phone|default:profile.phone %}+{{ application.phone|default:profile.phone }}{% endif %}"
-                    readonly></div>
+
+<div class="row g-4">
+    <!-- Left Column: Photo Card -->
+    <div class="col-12 col-md-4">
+        <div class="card card-pad text-center h-100 d-flex flex-column align-items-center justify-content-center">
+            {% if application.student_photo %}
+                <div class="profile-photo-display mx-auto mb-3" style="width: 140px; height: 140px; flex: 0 0 140px; border: 3px solid var(--s-200); border-radius: 50% !important; overflow: hidden !important; box-shadow: 0 4px 10px rgba(0,0,0,0.08);">
+                    <img src="data:{{ application.student_photo_type }};base64,{{ application.student_photo }}"
+                         alt="{{ request.user.get_full_name|default:request.user.username }}"
+                         class="rounded-circle w-100 h-100" style="object-fit: cover;">
+                </div>
+                <h4 class="mb-1 text-dark" style="font-weight: 700;">{{ request.user.get_full_name|default:request.user.username }}</h4>
+                <p class="text-muted small mb-0">Student Photograph</p>
+            {% else %}
+                <form method="post" enctype="multipart/form-data" class="profile-photo-upload w-100 text-center">
+                    {% csrf_token %}
+                    <label class="profile-photo-display profile-photo-display--upload mx-auto mb-3" for="profileStudentPhoto" 
+                           style="width: 140px; height: 140px; flex: 0 0 140px; border: 3px dashed var(--s-300); border-radius: 50% !important; overflow: hidden !important; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width: 40px; color: var(--s-400);">
+                            <circle cx="12" cy="8" r="4" />
+                            <path d="M4 20c0-3.7 3.6-6.5 8-6.5s8 2.8 8 6.5" />
+                        </svg>
+                        <span class="text-muted small mt-2" style="font-weight: 600;">Upload Photo</span>
+                    </label>
+                    <input id="profileStudentPhoto" type="file" name="student_photo" accept="image/*" required style="display:none;">
+                    
+                    <h5 class="mb-1 text-dark" style="font-weight: 700;">Add Student Photo</h5>
+                    <p class="text-muted small">Passport-size photograph for identity card.</p>
+                    {% if photo_error %}
+                        <div class="alert alert-danger py-2 px-3 mt-2" style="font-size: 12px; border-radius: var(--radius-sm);">
+                            {{ photo_error }}
+                        </div>
+                    {% endif %}
+                </form>
+            {% endif %}
         </div>
     </div>
-</section>{% endblock %}
+
+    <!-- Right Column: Details Card -->
+    <div class="col-12 col-md-8">
+        <div class="card card-pad h-100">
+            <div class="form-section mb-0">
+                <h3 class="mb-3" style="font-weight: 700;">Account Details</h3>
+                <p class="section-sub mb-4">Official personal details registered with your application.</p>
+                
+                <div class="row g-3">
+                    <div class="col-12 col-sm-6">
+                        <div class="p-3 bg-light rounded" style="border: 1px solid var(--s-200); border-radius: var(--radius-md) !important; background: var(--s-50);">
+                            <div class="text-muted small mb-1" style="font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">First name</div>
+                            <div class="text-dark" style="font-weight: 600;">{{ request.user.first_name }}</div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <div class="p-3 bg-light rounded" style="border: 1px solid var(--s-200); border-radius: var(--radius-md) !important; background: var(--s-50);">
+                            <div class="text-muted small mb-1" style="font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Last name</div>
+                            <div class="text-dark" style="font-weight: 600;">{{ request.user.last_name }}</div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <div class="p-3 bg-light rounded" style="border: 1px solid var(--s-200); border-radius: var(--radius-md) !important; background: var(--s-50);">
+                            <div class="text-muted small mb-1" style="font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Email address</div>
+                            <div class="text-dark" style="font-weight: 600;">{{ request.user.email }}</div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <div class="p-3 bg-light rounded" style="border: 1px solid var(--s-200); border-radius: var(--radius-md) !important; background: var(--s-50);">
+                            <div class="text-muted small mb-1" style="font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Phone number</div>
+                            <div class="text-dark" style="font-weight: 600;">
+                                {% if application.phone|default:profile.phone %}
+                                    +{{ application.phone|default:profile.phone }}
+                                {% else %}
+                                    Not provided
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
 {% block extra_scripts %}
-<script>const profileStudentPhoto = document.getElementById("profileStudentPhoto"); if (profileStudentPhoto) { profileStudentPhoto.addEventListener("change", () => { if (profileStudentPhoto.files.length) profileStudentPhoto.form.requestSubmit(); }); }</script>
+<script>
+    const profileStudentPhoto = document.getElementById("profileStudentPhoto");
+    if (profileStudentPhoto) {
+        profileStudentPhoto.addEventListener("change", () => {
+            if (profileStudentPhoto.files.length) {
+                profileStudentPhoto.form.submit();
+            }
+        });
+    }
+</script>
 {% endblock %}

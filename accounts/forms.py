@@ -23,6 +23,16 @@ class StyledFormMixin:
 
 
 class SignUpForm(StyledFormMixin, UserCreationForm):
+    PROGRAM_CHOICES = [
+        ("MS", "MS"),
+        ("PHD", "PhD"),
+    ]
+    program = forms.ChoiceField(
+        choices=PROGRAM_CHOICES,
+        widget=forms.RadioSelect,
+        required=True,
+        error_messages={"required": "Please select the program you're applying for."},
+    )
     name_validator = RegexValidator(r"^[A-Za-z]+(?:[-'][A-Za-z]+)*$", "Use letters only.")
     first_name = forms.CharField(max_length=150, required=True, validators=[name_validator])
     last_name = forms.CharField(max_length=150, required=True, validators=[name_validator])

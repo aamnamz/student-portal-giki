@@ -30,6 +30,7 @@
   --radius-lg: 16px;
   --shadow-card: 0 1px 2px rgba(15,23,42,0.04), 0 1px 12px rgba(15,23,42,0.04);
   --sidebar-w: 238px;
+  --sidebar-w-collapsed: 72px;
 }
 
 *{ box-sizing:border-box; }
@@ -59,7 +60,7 @@ button{ font-family:inherit; cursor:pointer; }
   position:fixed;
   top:0; left:0; bottom:0;
   z-index:40;
-  transition:transform .25s ease;
+  transition:transform .25s ease, width .25s ease;
 }
 .sidebar-brand{
   display:flex; align-items:center; gap:12px;
@@ -103,8 +104,9 @@ button{ font-family:inherit; cursor:pointer; }
 .application-toggle[aria-expanded="true"] .nav-chevron{ transform:rotate(180deg); }
 .application-subnav{ display:none; margin:-1px 0 4px 30px; padding-left:12px; border-left:1px solid rgba(146,144,195,.45); }
 .application-subnav.open{ display:flex; flex-direction:column; }
-.subnav-item{ padding:7px 8px; border-radius:6px; color:var(--s-400); font-size:12.5px; font-weight:600; }
+.subnav-item{ padding:7px 8px; border-radius:6px; color:var(--s-400); font-size:12.5px; font-weight:600; transition: background .15s ease, color .15s ease; }
 .subnav-item:hover{ background:rgba(255,255,255,.06); color:#fff; }
+.subnav-item.active{ background:rgba(255,255,255,.1); color:#fff; border-left: 2px solid var(--accent); border-radius: 0 6px 6px 0; padding-left: 6px; }
 .nav-divider{ height:1px; background:rgba(255,255,255,0.08); margin:10px 4px; }
 .sidebar-footer{ padding:12px; border-top:1px solid rgba(255,255,255,0.08); }
 .nav-item--logout{ color:var(--s-400); }
@@ -116,22 +118,29 @@ button{ font-family:inherit; cursor:pointer; }
   z-index:30;
 }
 
+/* ============ SIDEBAR COLLAPSE (desktop/tablet icon rail) ============ */
+.portal.sidebar-collapsed .sidebar{ width:var(--sidebar-w-collapsed); }
+.portal.sidebar-collapsed .main{ margin-left:var(--sidebar-w-collapsed); }
+.portal.sidebar-collapsed .sidebar-brand{ justify-content:center; padding-left:14px; padding-right:14px; }
+.portal.sidebar-collapsed .brand-text{ display:none; }
+.portal.sidebar-collapsed .nav-item{ justify-content:center; }
+.portal.sidebar-collapsed .nav-item span,
+.portal.sidebar-collapsed .nav-chevron{ display:none; }
+.portal.sidebar-collapsed .application-subnav{ display:none !important; }
 
 /* ============ TOP NAV ============ */
-.main{ flex:1; margin-left:var(--sidebar-w); display:flex; flex-direction:column; min-width:0; }
+.main{ flex:1; margin-left:var(--sidebar-w); display:flex; flex-direction:column; min-width:0; transition:margin-left .25s ease; }
 .topbar{
   height:64px; flex-shrink:0;
-  display:flex; align-items:center; gap:16px;
   padding:0 24px;
   background:#fff;
   border-bottom:1px solid var(--s-200);
   position:sticky; top:0; z-index:20;
 }
-.sidebar-toggle{ display:none; }
+.sidebar-toggle{ display:flex; }
 .topbar-title,.topbar-context{ font-family:'Manrope', 'Inter', sans-serif; font-size:17px; font-weight:700; color:var(--s-900); margin:0; }
-.topbar-actions{ margin-left:auto; display:flex; align-items:center; gap:10px; }
+.topbar-actions{ gap:10px; }
 .icon-btn{
-  position:relative;
   width:38px; height:38px;
   display:flex; align-items:center; justify-content:center;
   background:none; border:none; border-radius:var(--radius-sm);
@@ -152,7 +161,6 @@ button{ font-family:inherit; cursor:pointer; }
 
 .profile-menu{ position:relative; }
 .profile-trigger{
-  display:flex; align-items:center; gap:8px;
   background:none; border:none; padding:4px 6px; border-radius:var(--radius-sm);
   color:var(--s-700);
 }
@@ -196,15 +204,13 @@ button{ font-family:inherit; cursor:pointer; }
 
 /* ---- Hero / welcome ---- */
 .hero{
-  display:flex; justify-content:space-between; align-items:flex-start; gap:24px;
-  margin-bottom:22px; flex-wrap:wrap;
+  margin-bottom:22px;
 }
 .hero h2{ font-size:22px; font-weight:800; color:var(--s-900); margin:0 0 6px; }
 .hero p{ font-size:13.5px; color:var(--s-500); margin:0; max-width:46ch; }
 .hero .applicant-email{ color:var(--s-700); font-weight:600; margin-bottom:3px; }
 .hero .today-date{ color:var(--s-500); font-size:12.5px; margin-bottom:8px; }
 .deadline-chip{
-  display:inline-flex; align-items:center; gap:8px;
   background:var(--warn-soft); color:#92400E;
   font-size:12.5px; font-weight:600;
   padding:8px 14px; border-radius:999px; white-space:nowrap;
@@ -342,13 +348,48 @@ button{ font-family:inherit; cursor:pointer; }
   .grid-2, .grid-3, .dashboard-summary-grid{ grid-template-columns:1fr; }
   .doc-stats{ grid-template-columns:repeat(2,1fr); }
 }
+
 @media (max-width: 860px){
-  .sidebar{ transform:translateX(-100%); box-shadow:0 0 0 rgba(0,0,0,0); }
+  .sidebar{ transform:translateX(-100%); box-shadow:0 0 0 rgba(0,0,0,0); width:var(--sidebar-w); transition:transform .3s cubic-bezier(0.4, 0, 0.2, 1); }
   .portal.nav-open .sidebar{ transform:translateX(0); box-shadow:0 0 40px rgba(0,0,0,0.25); }
-  .portal.nav-open .sidebar-scrim{ display:block; }
-  .main{ margin-left:0; }
-  .sidebar-toggle{ display:flex; }
+  .portal.nav-open .sidebar-scrim{ display:block; opacity:1; animation:fadeIn .3s ease forwards; }
+  .main{ margin-left:0; transition:margin-left .3s cubic-bezier(0.4, 0, 0.2, 1); }
+  .portal.sidebar-collapsed .sidebar{ width:var(--sidebar-w); }
+  .portal.sidebar-collapsed .main{ margin-left:0; }
+  
   .profile-name{ display:none; }
   .content{ padding:20px 16px 48px; }
-  .field-grid{ grid-template-columns:1fr; }.field--full{ grid-column:auto; }.form-card{ padding:20px; }.upload-control{ align-items:flex-start; flex-direction:column; }.student-photo-section{ align-items:stretch; flex-direction:column; }.profile-box{ width:100%; flex-basis:auto; }.profile-summary{ align-items:flex-start; flex-direction:column; }
+  
+  .field-grid{ grid-template-columns:1fr; }
+  .field--full{ grid-column:auto; }
+  .form-card{ padding:20px; }
+  
+  .upload-control{ align-items:flex-start; flex-direction:column; }
+  .student-photo-section{ align-items:stretch; flex-direction:column; }
+  .profile-box{ width:100%; flex-basis:auto; }
+  .profile-summary{ align-items:flex-start; flex-direction:column; }
+}
+
+@media (max-width: 576px){
+  .doc-stats{ grid-template-columns:1fr; gap:10px; }
+  .page-intro h2 { font-size:18px; }
+  .hero h2 { font-size:20px; }
+  .hero p { font-size: 13px; }
+  .content{ padding: 16px 12px 40px; }
+  .form-actions { flex-direction: column; }
+  .form-actions .btn { width: 100%; justify-content: center; }
+  .status-card { overflow-x: auto; padding-bottom: 10px; }
+  .tl-step { min-width: 90px; } /* Ensures timeline steps don't squish too much */
+}
+
+/* Make tables horizontally scrollable without breaking page layout */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }

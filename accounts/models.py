@@ -1,6 +1,12 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.validators import RegexValidator
+
+
+class User(AbstractUser):
+    """Custom User model to support future role-based authorization."""
+    pass
 
 
 pakistani_phone = RegexValidator(

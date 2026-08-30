@@ -1,17 +1,89 @@
 {% extends "base.html" %}
 {% block title %}Application Status{% endblock %}{% block page_title %}Application Status{% endblock %}
-{% block content %}<div class="page-intro">
+{% block content %}
+<div class="page-intro">
     <div>
         <h2>Application status</h2>
         <p>Track the journey of your application from registration to decision.</p>
-    </div><span class="status-badge status--{{ application.status|cut:'_' }}">{{ application.get_status_display}}</span>
+    </div>
+    <span class="status-badge status--{{ application.status|cut:'_' }}">{{ application.get_status_display }}</span>
 </div>
-<section class="card card-pad">
-    <div class="timeline">{% for step in status_timeline %}<div
-            class="tl-step {% if step.done %}done{% endif %} {% if step.current %}current{% endif %}">
-            <div class="tl-line"></div>
-            <div class="tl-dot">{% if step.done %}✓{% endif %}</div>
-            <div class="tl-label">{{ step.label }}</div>
-        </div>{% endfor %}</div>
-</section>
+
+<div class="card card-pad mb-4">
+    <div class="timeline">
+        {% for step in status_timeline %}
+            <div class="tl-step {% if step.done %}done{% endif %} {% if step.current %}current{% endif %}">
+                <div class="tl-line"></div>
+                <div class="tl-dot">
+                    {% if step.done %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width: 12px; height: 12px;"><path d="M5 13l4 4L19 7"/></svg>
+                    {% endif %}
+                </div>
+                <div class="tl-label">{{ step.label }}</div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Details & CTA Card based on current status -->
+<div class="card card-pad text-center py-5">
+    <div class="mx-auto mb-4 d-flex align-items-center justify-content-center rounded-circle" 
+         style="width: 80px; height: 80px; 
+         {% if application.status == 'accepted' %}
+             background-color: var(--ok-soft); color: var(--ok);
+         {% elif application.status == 'rejected' %}
+             background-color: var(--danger-soft); color: var(--danger);
+         {% elif application.status == 'action_required' %}
+             background-color: var(--warn-soft); color: #92400E;
+         {% elif application.status == 'ready' %}
+             background-color: var(--info-soft); color: var(--info);
+         {% else %}
+             background-color: var(--s-100); color: var(--s-500);
+         {% endif %}">
+         
+         {% if application.status == 'accepted' %}
+             <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+         {% elif application.status == 'rejected' %}
+             <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+         {% elif application.status == 'action_required' %}
+             <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+         {% elif application.status == 'ready' %}
+             <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+         {% else %}
+             <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+         {% endif %}
+    </div>
+
+    <div class="mx-auto" style="max-width: 600px;">
+        {% if application.status == 'accepted' %}
+            <h3 style="font-weight: 800; color: var(--s-900);">Congratulations!</h3>
+            <p class="text-muted mt-2 mb-4">Your application has been accepted for admission at GIKI. Welcome to the GIKI family! Please check your email for the official admission letter and next steps regarding fee submission and registration.</p>
+            <a href="mailto:admissions@giki.edu.pk" class="btn btn-primary">Contact Admissions Registrar</a>
+        {% elif application.status == 'rejected' %}
+            <h3 style="font-weight: 800; color: var(--s-900);">Admission Status Update</h3>
+            <p class="text-muted mt-2 mb-4">Thank you for your application to GIKI. We regret to inform you that we are unable to offer you admission for this term. We appreciate your interest in GIKI and wish you the best in your future academic pursuits.</p>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline">Back to Dashboard</a>
+        {% elif application.status == 'action_required' %}
+            <h3 style="font-weight: 800; color: var(--s-900);">Action Required</h3>
+            <p class="text-muted mt-2 mb-4">The admission office has reviewed your files and requires updates before processing your application further. Please check the document management page to see which files need attention.</p>
+            <a href="{% url 'documents' %}" class="btn btn-primary">Manage Documents</a>
+        {% elif application.status == 'ready' %}
+            <h3 style="font-weight: 800; color: var(--s-900);">Ready for Submission</h3>
+            <p class="text-muted mt-2 mb-4">Great job! All checklist items are complete. Please review your full application details carefully and submit your application to the committee for evaluation.</p>
+            <a href="{% url 'review_application' %}" class="btn btn-primary">Review &amp; Submit</a>
+        {% elif application.status == 'submitted' %}
+            <h3 style="font-weight: 800; color: var(--s-900);">Application Submitted</h3>
+            <p class="text-muted mt-2 mb-4">Your application was submitted successfully and is currently in queue. The admissions office will verify your documents shortly. You will receive an email update if further actions are required.</p>
+            <a href="{% url 'my_application' %}" class="btn btn-outline">View Application Summary</a>
+        {% elif application.status == 'under_review' %}
+            <h3 style="font-weight: 800; color: var(--s-900);">Under Review</h3>
+            <p class="text-muted mt-2 mb-4">Your application has been verified and is currently being evaluated by the GIKI Admissions Committee. Decisions will be posted here as soon as they are finalized.</p>
+            <a href="{% url 'help_contact' %}" class="btn btn-outline">View FAQ / Guidelines</a>
+        {% else %}
+            <h3 style="font-weight: 800; color: var(--s-900);">Application In Progress</h3>
+            <p class="text-muted mt-2 mb-4">Your application is currently a draft. Please complete all the sections in the sidebar under "My Application" to make it ready for submission.</p>
+            <a href="{% url 'my_application' %}" class="btn btn-primary">Continue Form</a>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}

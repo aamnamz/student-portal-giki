@@ -3,7 +3,7 @@ from django.shortcuts import redirect, render
 from django.utils import timezone
 
 from applications.models import Application
-
+from .helpers import required_document_types, update_documents_status
 from .models import Document
 
 
@@ -42,17 +42,28 @@ def update_documents_status(application):
 
 @login_required
 def documents(request):
-    application, _ = Application.objects.get_or_create(applicant=request.user)
+    application = Application.objects.filter(applicant=request.user).first()
+    if not application:
+        application = Application.objects.create(applicant=request.user)
 
-    # Make sure a Document row exists for every required doc type,
-    # so the page always shows all 5 rows even before anything's uploaded.
     required_types = required_document_types(application)
+
+    # Ensure a Document row exists for every required type
     existing_types = set(application.documents.values_list("doc_type", flat=True))
     for doc_type, _label in Document.DOC_TYPES:
         if doc_type not in existing_types:
             Document.objects.create(application=application, doc_type=doc_type)
 
     if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "save_declaration":
+            accepted = request.POST.get("declaration_accepted") == "on"
+            application.declaration_accepted = accepted
+            application.save(update_fields=["declaration_accepted", "updated_at"])
+            if accepted:
+                return redirect("review_application")
+            return redirect("documents")
+
         document = application.documents.filter(pk=request.POST.get("document_id")).first()
         uploaded_file = request.FILES.get("file")
         if document and uploaded_file:
@@ -67,5 +78,6 @@ def documents(request):
 
     return render(request, "documents/documents.html", {
         "active_nav": "application",
+        "application": application,
         "documents": application.documents.filter(doc_type__in=required_types),
     })
