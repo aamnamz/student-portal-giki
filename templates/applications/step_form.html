@@ -1,206 +1,533 @@
 {% extends "base.html" %}
-{% block title %}{{ title }}{% endblock %}{% block page_title %}{{ title }}{% endblock %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
 {% block content %}
+
 <div class="page-intro">
   <div>
     <h2>{{ title }}</h2>
     <p>{{ guidance }}</p>
   </div>
 </div>
-<form class="card form-card needs-validation {% if form.is_bound %}was-validated{% endif %}" method="post"
-  enctype="multipart/form-data" novalidate>
+<form class="card form-card needs-validation {% if form.is_bound %}was-validated{% endif %}" method="post" enctype="multipart/form-data" novalidate>
   {% csrf_token %}
-  {% if form.non_field_errors %}<div class="invalid-feedback d-block">{{ form.non_field_errors }}</div>{% endif %}
-  {% if form.student_photo %}
-  <div class="student-photo-section">
-    <div class="profile-box">
-      <label for="{{ form.student_photo.id_for_label }}" class="id-photo-frame" id="photoFrame">
-        {% if form.instance.student_photo %}
-        <img id="preview" src="data:{{ form.instance.student_photo_type }};base64,{{ form.instance.student_photo }}"
-          alt="Current student photo">
-        {% else %}
-        <img id="preview" src="" alt="" hidden>
-        <svg class="avatar-fallback" id="avatarFallback" viewBox="0 0 24 24" fill="none"
-          xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6" />
-          <path d="M4 20c0-3.7 3.6-6.5 8-6.5s8 2.8 8 6.5" stroke="currentColor" stroke-width="1.6"
-            stroke-linecap="round" />
-        </svg>
-        {% endif %}
-        <span class="photo-overlay">Upload photo</span>
-      </label>
-      <div class="photo-file-input">{{ form.student_photo }}</div>
-      <p class="photo-caption">Passport-size photo <span class="required">*</span></p>
-      <div class="invalid-feedback" id="photoError" hidden></div>
-      {% for error in form.student_photo.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
-      {% if not form.student_photo.errors %}<div class="valid-feedback">Looks good!</div>{% endif %}
+  {% if form.non_field_errors %}
+    <div class="invalid-feedback d-block">
+      {% for error in form.non_field_errors %}
+        {{ error }}
+      {% endfor %}
     </div>
-    <aside class="photo-upload-help" aria-label="Photo upload instructions">
-      <div class="photo-upload-help-title">Before you upload</div>
-      <ul>
-        <li>Use a recent, clear, colour photo of yourself only.</li>
-        <li>Keep your full face visible and look generally toward the camera.</li>
-        <li>Use good light and stand close enough for your face to be clear.</li>
-        <li>Remove sunglasses, masks, and face coverings.</li>
-      </ul>
-    </aside>
-  </div>
+  {% endif %}
+  {% if form.student_photo %}
+    <div class="student-photo-section">
+      <div class="profile-box">
+        <label for="{{ form.student_photo.id_for_label }}" class="id-photo-frame" id="photoFrame">
+          {% if form.instance.student_photo %}
+            <img id="preview" src="data:{{ form.instance.student_photo_type }};base64,{{ form.instance.student_photo }}" alt="Current student photo">
+          {% else %}
+            <img id="preview" src="" alt="" hidden>
+            <svg class="avatar-fallback" id="avatarFallback" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6" />
+              <path d="M4 20c0-3.7 3.6-6.5 8-6.5s8 2.8 8 6.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            </svg>
+          {% endif %}
+          <span class="photo-overlay">Upload photo</span>
+        </label>
+        <div class="photo-file-input">
+          {{ form.student_photo }}
+        </div>
+        <p class="photo-caption">
+          Passport-size photo
+          <span class="required">*</span>
+        </p>
+        <div class="invalid-feedback" id="photoError" hidden></div>
+        {% for error in form.student_photo.errors %}
+          <div class="invalid-feedback d-block">
+            {{ error }}
+          </div>
+        {% endfor %}
+      </div>
+      <aside class="photo-upload-help" aria-label="Photo upload instructions">
+        <div class="photo-upload-help-title">
+          Before you upload
+        </div>
+        <ul>
+          <li>Use a recent, clear, colour photo of yourself only.</li>
+          <li>Keep your full face visible and look generally toward the camera.</li>
+          <li>Use good light and stand close enough for your face to be clear.</li>
+          <li>Remove sunglasses, masks, and face coverings.</li>
+        </ul>
+      </aside>
+    </div>
   {% endif %}
   <div class="field-grid">
     {% for field in form %}
-    {% if field.name != 'student_photo' %}
-    <div
-      class="field {% if field.name == 'present_address' or field.name == 'permanent_address' %}field--full{% endif %}">
-      <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span
-          class="required">*</span>{% endif %}</label>
-      {% if 'phone' in field.name or field.name == 'emergency_contact_number' %}
-      <div class="input-group has-validation">
-        <span class="input-group-text">+</span>{{ field }}
-        {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
-        <div class="invalid-feedback">Please provide a valid {{ field.label }}.</div>
-        {% if not field.errors %}<div class="valid-feedback">Looks good!</div>{% endif %}
-      </div>
-      {% elif field.field.widget.input_type == "radio" %}
-      <div class="radio-options">
-        {% for radio in field %}
-        <label class="radio-option">
-          {{ radio.tag }}
-          <span>{{ radio.choice_label }}</span>
-        </label>
-        {% endfor %}
-      </div>
-      {% for error in field.errors %}
-      <div class="invalid-feedback d-block">{{ error }}</div>
-      {% endfor %}
-
-      {% else %}
-      {{ field }}
-      {% for error in field.errors %}
-      <div class="invalid-feedback d-block">{{ error }}</div>
-      {% endfor %}
-      <div class="invalid-feedback">Please provide a valid {{ field.label }}.</div>
-      {% if not field.errors %}
-      <div class="valid-feedback">Looks good!</div>
+      {% if field.name != "student_photo" %}
+        {% if field.name == "cnic" %}
+          <div class="field" data-nationality-field="Pakistani">
+        {% elif field.name == "passport_no" %}
+          <div class="field" data-nationality-field="Other">
+        {% elif field.name == "mailing_house_street_no" %}
+          <div class="field field--full conditional-group" id="mailing-address-fields">
+            <h4 class="conditional-group-title">
+              Mailing address
+            </h4>
+            <div class="field-grid">
+              <div class="field field--full">
+        {% elif field.name == "permanent_house_street_no" %}
+          <div class="field field--full">
+        {% elif field.name == "employer" %}
+          <div class="field field--full conditional-group" id="employment-fields">
+            <h4 class="conditional-group-title">
+              Employment details
+            </h4>
+            <div class="field-grid">
+              <div class="field">
+        {% elif field.name == "test_center_name" %}
+          <div class="field field--full conditional-group" id="already-qualified-fields">
+            <h4 class="conditional-group-title">
+              Entrance test result
+            </h4>
+            <div class="field-grid">
+              <div class="field">
+        {% elif field.name == "evidence_document" %}
+          <div class="field field--full">
+        {% elif field.name == "proof_of_payment" %}
+          <div class="field field--full">
+        {% elif field.name == "recommendation_letter" %}
+          <div class="field field--full">
+        {% else %}
+          <div class="field">
+        {% endif %}
+        {% if field.field.widget.input_type == "checkbox" %}
+          <div class="checkbox-field">
+            {{ field }}
+            <label for="{{ field.id_for_label }}">
+              {{ field.label }}
+              {% if field.field.required %}
+                <span class="required">*</span>
+              {% endif %}
+            </label>
+          </div>
+          {% for error in field.errors %}
+            <div class="invalid-feedback d-block">
+              {{ error }}
+            </div>
+          {% endfor %}
+        {% elif field.field.widget.attrs.placeholder == "923XXXXXXXXX" %}
+          <label for="{{ field.id_for_label }}">
+            {{ field.label }}
+            {% if field.field.required %}
+              <span class="required">*</span>
+            {% endif %}
+          </label>
+          <div class="input-group has-validation">
+            <span class="input-group-text">+</span>
+            {{ field }}
+            {% for error in field.errors %}
+              <div class="invalid-feedback d-block">
+                {{ error }}
+              </div>
+            {% endfor %}
+          </div>
+        {% elif field.field.widget.input_type == "radio" %}
+          <label>
+            {{ field.label }}
+            {% if field.field.required %}
+              <span class="required">*</span>
+            {% endif %}
+          </label>
+          <div class="radio-options">
+            {% for radio in field %}
+              <label class="radio-option">
+                {{ radio.tag }}
+                <span>{{ radio.choice_label }}</span>
+              </label>
+            {% endfor %}
+          </div>
+          {% for error in field.errors %}
+            <div class="invalid-feedback d-block">
+              {{ error }}
+            </div>
+          {% endfor %}
+        {% elif field.field.widget.input_type == "file" %}
+          <label for="{{ field.id_for_label }}">
+            {{ field.label }}
+            {% if field.field.required %}
+              <span class="required">*</span>
+            {% endif %}
+          </label>
+          {{ field }}
+          {% if field.help_text %}
+            <small class="form-text text-muted">
+              {{ field.help_text }}
+            </small>
+          {% endif %}
+          {% for error in field.errors %}
+            <div class="invalid-feedback d-block">
+              {{ error }}
+            </div>
+          {% endfor %}
+        {% elif field.name == "board_university" %}
+          <label for="{{ field.id_for_label }}">
+            {{ field.label }}
+            {% if field.field.required %}
+              <span class="required">*</span>
+            {% endif %}
+          </label>
+          {{ field }}
+          <datalist id="board-university-options"></datalist>
+          {% for error in field.errors %}
+            <div class="invalid-feedback d-block">
+              {{ error }}
+            </div>
+          {% endfor %}
+        {% else %}
+          <label for="{{ field.id_for_label }}">
+            {{ field.label }}
+            {% if field.field.required %}
+              <span class="required">*</span>
+            {% endif %}
+          </label>
+          {{ field }}
+          {% for error in field.errors %}
+            <div class="invalid-feedback d-block">
+              {{ error }}
+            </div>
+          {% endfor %}
+        {% endif %}
+        {% if field.name == "mailing_courier_available" %}
+              </div>
+            </div>
+          </div>
+        {% elif field.name == "still_working_here" %}
+              </div>
+            </div>
+          </div>
+        {% elif field.name == "date_of_test" %}
+              </div>
+            </div>
+          </div>
+        {% else %}
+          </div>
+        {% endif %}
       {% endif %}
-      {% endif %}
-    </div>
-    {% endif %}
     {% endfor %}
   </div>
-  <div class="form-actions"><a class="btn btn-outline" href="{% url 'my_application' %}">Cancel</a><button
-      class="btn btn-primary" type="submit">Save &amp; Next</button></div>
+  <div class="form-actions">
+    <a class="btn btn-outline" href="{% url 'my_application' %}">
+      Cancel
+    </a>
+    <button class="btn btn-primary" type="submit">
+      Save &amp; Next
+    </button>
+  </div>
 </form>
 {% endblock %}
 {% block extra_scripts %}
 <script>
-  const pageLoader = document.getElementById("pageLoader");
-
-  document.querySelectorAll("form.needs-validation").forEach((form) => {
-    form.addEventListener("submit", (event) => {
-      form.classList.add("was-validated");
-
-      if (!form.checkValidity()) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        if (pageLoader) pageLoader.hidden = true;
-        const firstInvalid = form.querySelector(":invalid");
-        if (firstInvalid) firstInvalid.scrollIntoView({ behavior: "smooth", block: "center" });
-        return;
+const pageLoader = document.getElementById("pageLoader");
+document.querySelectorAll("form.needs-validation").forEach((form) => {
+  form.addEventListener("submit", (event) => {
+    form.classList.add("was-validated");
+    if (!form.checkValidity()) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (pageLoader) {
+        pageLoader.hidden = true;
       }
-
-      if (pageLoader) pageLoader.hidden = false;
-    }, true);
+      const firstInvalid = form.querySelector(":invalid");
+      if (firstInvalid) {
+        firstInvalid.scrollIntoView({
+          behavior: "smooth",
+          block: "center"
+        });
+      }
+      return;
+    }
+    if (pageLoader) {
+      pageLoader.hidden = false;
+    }
+  }, true);
+});
+document.querySelectorAll('input[name="cnic"]').forEach((input) => {
+  input.addEventListener("input", () => {
+    const digits = input.value
+      .replace(/\D/g, "")
+      .slice(0, 13);
+    input.value = [
+      digits.slice(0, 5),
+      digits.slice(5, 12),
+      digits.slice(12, 13)
+    ]
+      .filter(Boolean)
+      .join("-");
   });
-
-  document.querySelectorAll('input[name="cnic_or_bform"], input[name="guardian_cnic"]').forEach((input) => {
+});
+document
+  .querySelectorAll('input[placeholder="923XXXXXXXXX"]')
+  .forEach((input) => {
     input.addEventListener("input", () => {
-      const digits = input.value.replace(/\D/g, "").slice(0, 13);
-      input.value = [digits.slice(0, 5), digits.slice(5, 12), digits.slice(12, 13)].filter(Boolean).join("-");
+      input.value = input.value
+        .replace(/\D/g, "")
+        .slice(0, 12);
     });
   });
-
-  document.querySelectorAll('input[name="phone"], input[name="alternate_phone"], input[name="guardian_phone"], input[name="emergency_contact_number"]').forEach((input) => {
-    input.addEventListener("input", () => { input.value = input.value.replace(/\D/g, "").slice(0, 12); });
-  });
-
-  document.querySelectorAll('input[name="postal_code"]').forEach((input) => {
-    input.addEventListener("input", () => { input.value = input.value.replace(/\D/g, "").slice(0, 6); });
-  });
-
-  const intermediateResult = document.getElementById("id_intermediate_result");
-  const intermediateFields = ["intermediate_board", "intermediate_group", "intermediate_year", "intermediate_total_marks", "intermediate_marks", "intermediate_grade"]
-    .map((name) => document.getElementById(`id_${name}`)).filter(Boolean);
-  function updateIntermediateRequirements() {
-    if (!intermediateResult) return;
-    const awaited = intermediateResult.value === "awaited";
-    intermediateFields.forEach((field) => {
-      field.required = !awaited;
-      field.setCustomValidity("");
-      field.classList.remove("is-valid", "is-invalid");
+(function () {
+  const nationalitySelect =
+    document.querySelector("[data-nationality-select]");
+  const fields =
+    document.querySelectorAll("[data-nationality-field]");
+  if (!nationalitySelect || !fields.length) {
+    return;
+  }
+  function sync() {
+    const value = nationalitySelect.value;
+    fields.forEach((field) => {
+      const matches =
+        field.getAttribute("data-nationality-field") === value;
+      field.hidden = !matches;
+      const input = field.querySelector("input");
+      if (input) {
+        input.disabled = !matches;
+      }
     });
   }
-  if (intermediateResult) {
-    intermediateResult.addEventListener("change", updateIntermediateRequirements);
-    updateIntermediateRequirements();
+  nationalitySelect.addEventListener("change", sync);
+  sync();
+})();
+document
+  .querySelectorAll("[data-same-as-toggle]")
+  .forEach((checkbox) => {
+    const target =
+      document.getElementById(checkbox.dataset.sameAsToggle);
+    if (!target) {
+      return;
+    }
+    function sync() {
+      target.hidden = checkbox.checked;
+    }
+    checkbox.addEventListener("change", sync);
+    sync();
+  });
+(function () {
+  const toggles =
+    document.querySelectorAll("[data-entry-test-toggle]");
+  const target =
+    document.getElementById("already-qualified-fields");
+  if (!toggles.length || !target) {
+    return;
   }
-
-  const photoInput = document.getElementById("{{ form.student_photo.id_for_label }}");
-  const photoPreview = document.getElementById("preview");
-  const avatarFallback = document.getElementById("avatarFallback");
-  const photoError = document.getElementById("photoError");
-  const submitButtons = document.querySelectorAll('button[type="submit"]');
-  const photoValidationUrl = "{% url 'validate_photo_api' %}";
-  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-  function setPhotoError(message) {
-    photoError.textContent = message || "";
-    photoError.hidden = !message;
-    photoError.classList.toggle("d-block", Boolean(message));
+  function sync() {
+    const checked =
+      document.querySelector(
+        "[data-entry-test-toggle]:checked"
+      );
+    target.hidden =
+      !checked ||
+      checked.value !== "already_qualified";
   }
-
-  function resetPhoto() {
-    photoInput.value = "";
+  toggles.forEach((radio) => {
+    radio.addEventListener("change", sync);
+  });
+  sync();
+})();
+(function () {
+  const BOARDS_BY_DEGREE = {
+    matric: [
+      "BISE Peshawar",
+      "BISE Lahore",
+      "BISE Karachi",
+      "Federal Board (FBISE)",
+      "Other"
+    ],
+    intermediate: [
+      "BISE Peshawar",
+      "BISE Lahore",
+      "BISE Karachi",
+      "Federal Board (FBISE)",
+      "Cambridge (A-Level)",
+      "Other"
+    ],
+    bachelor: [
+      "University of Peshawar",
+      "Punjab University",
+      "Karachi University",
+      "NUST",
+      "COMSATS",
+      "Other"
+    ],
+    master: [
+      "University of Peshawar",
+      "Punjab University",
+      "Karachi University",
+      "NUST",
+      "COMSATS",
+      "Other"
+    ],
+    other: [
+      "Other"
+    ]
+  };
+  const degreeSelect =
+    document.querySelector("[data-degree-select]");
+  const datalist =
+    document.getElementById(
+      "board-university-options"
+    );
+  if (!degreeSelect || !datalist) {
+    return;
+  }
+  function sync() {
+    const options =
+      BOARDS_BY_DEGREE[degreeSelect.value] || [];
+    datalist.innerHTML =
+      options
+        .map(
+          (name) =>
+            `<option value="${name}"></option>`
+        )
+        .join("");
+  }
+  degreeSelect.addEventListener("change", sync);
+  sync();
+})();
+const photoInput =
+  document.getElementById(
+    "{{ form.student_photo.id_for_label }}"
+  );
+const photoPreview =
+  document.getElementById("preview");
+const avatarFallback =
+  document.getElementById("avatarFallback");
+const photoError =
+  document.getElementById("photoError");
+const submitButtons =
+  document.querySelectorAll(
+    'button[type="submit"]'
+  );
+const photoValidationUrl =
+  "{% url 'validate_photo_api' %}";
+const csrfToken =
+  document.querySelector(
+    "[name=csrfmiddlewaretoken]"
+  )?.value;
+function setPhotoError(message) {
+  if (!photoError) {
+    return;
+  }
+  photoError.textContent =
+    message || "";
+  photoError.hidden =
+    !message;
+  photoError.classList.toggle(
+    "d-block",
+    Boolean(message)
+  );
+}
+function resetPhoto() {
+  if (!photoInput) {
+    return;
+  }
+  photoInput.value = "";
+  if (photoPreview) {
     photoPreview.src = "";
     photoPreview.hidden = true;
-    if (avatarFallback) avatarFallback.hidden = false;
   }
-
-  if (photoInput) {
-    photoInput.addEventListener("change", async () => {
-      const [file] = photoInput.files;
-      if (!file) return;
-      submitButtons.forEach((button) => { button.disabled = true; });
+  if (avatarFallback) {
+    avatarFallback.hidden = false;
+  }
+}
+if (photoInput) {
+  photoInput.addEventListener(
+    "change",
+    async () => {
+      const [file] =
+        photoInput.files;
+      if (!file) {
+        return;
+      }
+      submitButtons.forEach(
+        (button) => {
+          button.disabled = true;
+        }
+      );
       setPhotoError("");
-      if (pageLoader) pageLoader.hidden = false;
+      if (pageLoader) {
+        pageLoader.hidden = false;
+      }
       try {
-        const dataUrl = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-        const response = await fetch(photoValidationUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded", "X-CSRFToken": csrfToken },
-          body: new URLSearchParams({ image: dataUrl }),
-        });
-        const result = await response.json();
-        if (!response.ok || !result.valid) {
-          setPhotoError(result.message || "Photo could not be validated.");
+        const dataUrl =
+          await new Promise(
+            (resolve, reject) => {
+              const reader =
+                new FileReader();
+              reader.onload =
+                () => resolve(
+                  reader.result
+                );
+              reader.onerror =
+                reject;
+              reader.readAsDataURL(file);
+            }
+          );
+        const response =
+          await fetch(
+            photoValidationUrl,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type":
+                  "application/x-www-form-urlencoded",
+                "X-CSRFToken":
+                  csrfToken
+              },
+              body:
+                new URLSearchParams({
+                  image: dataUrl
+                })
+            }
+          );
+        const result =
+          await response.json();
+        if (
+          !response.ok ||
+          !result.valid
+        ) {
+          setPhotoError(
+            result.message ||
+            "Photo could not be validated."
+          );
           resetPhoto();
           return;
         }
-        photoPreview.src = dataUrl;
-        photoPreview.hidden = false;
-        if (avatarFallback) avatarFallback.hidden = true;
+        if (photoPreview) {
+          photoPreview.src =
+            dataUrl;
+          photoPreview.hidden =
+            false;
+        }
+        if (avatarFallback) {
+          avatarFallback.hidden =
+            true;
+        }
       } catch (error) {
-        setPhotoError("Photo validation could not be completed. Please try again.");
+        setPhotoError(
+          "Photo validation could not be completed. Please try again."
+        );
         resetPhoto();
       } finally {
-        if (pageLoader) pageLoader.hidden = true;
-        submitButtons.forEach((button) => { button.disabled = false; });
+        if (pageLoader) {
+          pageLoader.hidden = true;
+        }
+        submitButtons.forEach(
+          (button) => {
+            button.disabled = false;
+          }
+        );
       }
-    });
-  }
+    }
+  );
+}
 </script>
 {% endblock %}

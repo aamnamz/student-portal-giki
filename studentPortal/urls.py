@@ -8,7 +8,6 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("dashboard.urls")),
     path("applications/", include("applications.urls")),
-    path("documents/", include("documents.urls")),
     path("accounts/", include("accounts.urls")),
     path("accounts/", include("allauth.urls")),
     path("auth/callback/google", google_oauth2_callback, name="google_callback"),

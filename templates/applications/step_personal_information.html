@@ -5,30 +5,173 @@
     <div>
         <h2>Personal information</h2>
         <p>Tell us about yourself exactly as shown on your official documents.</p>
-    </div><span class="status-badge status--{{ application.personal_info_status|cut:'_' }}">{{
-        application.get_personal_info_status_display }}</span>
+    </div>
+    <span class="status-badge status--{{ form.instance.status|cut:'_' }}">{{ form.instance.get_status_display }}</span>
 </div>
-<form class="card form-card">
+
+<form class="card form-card" method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div class="form-errors">
+        {% for error in form.non_field_errors %}
+        <p class="field-error">{{ error }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="form-section">
+        <h3>Photo</h3>
+        <p>Upload a passport-size student photo. JPG or PNG accepted.</p>
+        <div class="field-grid">
+            <div class="field field--full">
+                <label for="{{ form.student_photo.id_for_label }}">Student photo</label>
+                {% if form.instance.student_photo %}
+                <img src="data:{{ form.instance.student_photo_type }};base64,{{ form.instance.student_photo }}"
+                    alt="Current student photo" style="max-height:120px;display:block;margin-bottom:.5rem;">
+                {% endif %}
+                {{ form.student_photo }}
+                {% if form.student_photo.errors %}
+                <p class="field-error">{{ form.student_photo.errors|join:" " }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
     <div class="form-section">
         <h3>Identity details</h3>
         <p>Required for admission verification.</p>
         <div class="field-grid">
-            <div class="field field--full"><label>Full name</label><input value="{{ application.full_name }}"
-                    placeholder="Your full legal name"></div>
-            <div class="field"><label>Father's name</label><input value="{{ application.father_name }}"></div>
-            <div class="field"><label>CNIC / B-Form number</label><input value="{{ application.cnic_or_bform }}"></div>
-            <div class="field"><label>Date of birth</label><input type="date"
-                    value="{{ application.date_of_birth|date:'Y-m-d' }}"></div>
-            <div class="field"><label>Gender</label><select>
-                    <option>{{ application.get_gender_display|default:'Select gender' }}</option>
-                    <option>Male</option>
-                    <option>Female</option>
-                </select></div>
-            <div class="field"><label>Nationality</label><input value="{{ application.nationality }}"></div>
-            <div class="field"><label>Religion</label><input value="{{ application.religion }}"></div>
+            <div class="field field--full">
+                <label for="{{ form.full_name.id_for_label }}">Full name *</label>
+                {{ form.full_name }}
+                {% if form.full_name.errors %}<p class="field-error">{{ form.full_name.errors|join:" " }}</p>{% endif %}
+            </div>
+
+            <div class="field">
+                <label for="{{ form.father_name.id_for_label }}">Father's name *</label>
+                {{ form.father_name }}
+                {% if form.father_name.errors %}<p class="field-error">{{ form.father_name.errors|join:" " }}</p>{% endif %}
+            </div>
+
+            <div class="field">
+                <label for="{{ form.guardian_name.id_for_label }}">Guardian's name</label>
+                {{ form.guardian_name }}
+                {% if form.guardian_name.errors %}<p class="field-error">{{ form.guardian_name.errors|join:" " }}</p>{% endif %}
+            </div>
+
+            <div class="field">
+                <label for="{{ form.guardian_contact_no.id_for_label }}">Father / guardian contact no. *</label>
+                {{ form.guardian_contact_no }}
+                {% if form.guardian_contact_no.errors %}<p class="field-error">{{ form.guardian_contact_no.errors|join:" " }}</p>{% endif %}
+            </div>
+
+            <div class="field">
+                <label for="{{ form.cell_no.id_for_label }}">Cell no. *</label>
+                {{ form.cell_no }}
+                {% if form.cell_no.errors %}<p class="field-error">{{ form.cell_no.errors|join:" " }}</p>{% endif %}
+            </div>
+
+            <div class="field">
+                <label for="{{ form.date_of_birth.id_for_label }}">Date of birth *</label>
+                {{ form.date_of_birth }}
+                {% if form.date_of_birth.errors %}<p class="field-error">{{ form.date_of_birth.errors|join:" " }}</p>{% endif %}
+            </div>
+
+            <div class="field">
+                <label>Gender *</label>
+                {{ form.gender }}
+                {% if form.gender.errors %}<p class="field-error">{{ form.gender.errors|join:" " }}</p>{% endif %}
+            </div>
+
+            <div class="field">
+                <label for="{{ form.religion.id_for_label }}">Religion *</label>
+                {{ form.religion }}
+                {% if form.religion.errors %}<p class="field-error">{{ form.religion.errors|join:" " }}</p>{% endif %}
+            </div>
+
+            <div class="field">
+                <label for="{{ form.nationality.id_for_label }}">Nationality *</label>
+                {{ form.nationality }}
+                {% if form.nationality.errors %}<p class="field-error">{{ form.nationality.errors|join:" " }}</p>{% endif %}
+            </div>
         </div>
     </div>
-    <div class="form-actions"><a class="btn btn-outline" href="{% url 'my_application' %}">Back</a><a
-            class="btn btn-primary" href="{% url 'step_contact_address' %}">Save &amp; continue</a></div>
+
+    <div class="form-section">
+        <h3>Identification</h3>
+        <p>Provide CNIC if you're a Pakistani national, or passport number otherwise.</p>
+        <div class="field-grid">
+            <div class="field" data-nationality-field="Pakistani">
+                <label for="{{ form.cnic.id_for_label }}">CNIC / B-Form number</label>
+                {{ form.cnic }}
+                {% if form.cnic.errors %}<p class="field-error">{{ form.cnic.errors|join:" " }}</p>{% endif %}
+            </div>
+
+            <div class="field" data-nationality-field="Other">
+                <label for="{{ form.passport_no.id_for_label }}">Passport number</label>
+                {{ form.passport_no }}
+                {% if form.passport_no.errors %}<p class="field-error">{{ form.passport_no.errors|join:" " }}</p>{% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="form-section">
+        <h3>Domicile</h3>
+        <div class="field-grid">
+            <div class="field">
+                <label for="{{ form.domicile_province.id_for_label }}">Province of domicile *</label>
+                {{ form.domicile_province }}
+                {% if form.domicile_province.errors %}<p class="field-error">{{ form.domicile_province.errors|join:" " }}</p>{% endif %}
+            </div>
+
+            <div class="field">
+                <label for="{{ form.domicile_district.id_for_label }}">District of domicile *</label>
+                {{ form.domicile_district }}
+                {% if form.domicile_district.errors %}<p class="field-error">{{ form.domicile_district.errors|join:" " }}</p>{% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="form-section">
+        <h3>Additional</h3>
+        <div class="field-grid">
+            <div class="field field--full">
+                <label>Do you have any disability? *</label>
+                {{ form.disability_status }}
+                {% if form.disability_status.errors %}<p class="field-error">{{ form.disability_status.errors|join:" " }}</p>{% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <a class="btn btn-outline" href="{% url 'my_application' %}">Back</a>
+        <button type="submit" class="btn btn-primary">Save &amp; continue</button>
+    </div>
 </form>
+
+<script>
+    // Show CNIC only for Pakistani nationals, passport otherwise.
+    (function () {
+        const nationalitySelect = document.getElementById("{{ form.nationality.id_for_label }}");
+        const fields = document.querySelectorAll("[data-nationality-field]");
+
+        function sync() {
+            const value = nationalitySelect ? nationalitySelect.value : "Pakistani";
+            fields.forEach(function (field) {
+                const matches = field.getAttribute("data-nationality-field") === value;
+                field.style.display = matches ? "" : "none";
+                const input = field.querySelector("input");
+                if (input) {
+                    input.disabled = !matches;
+                }
+            });
+        }
+
+        if (nationalitySelect) {
+            nationalitySelect.addEventListener("change", sync);
+            sync();
+        }
+    })();
+</script>
 {% endblock %}

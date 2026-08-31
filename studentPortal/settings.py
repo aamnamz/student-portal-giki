@@ -59,7 +59,7 @@ ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "localhost,127.0.
 
 
 # Custom user model
-AUTH_USER_MODEL = 'accounts.User'
+AUTH_USER_MODEL = 'accounts.CustomUser'
 
 # Application definition
 
@@ -77,7 +77,6 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     'dashboard',
     'accounts',
-    'documents',
     'applications',
 ]
 

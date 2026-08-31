@@ -1,28 +1,230 @@
 {% extends "base.html" %}
-{% block title %}My Application{% endblock %}{% block page_title %}My Application{% endblock %}
+
+{% block title %}My Application{% endblock %}
+{% block page_title %}My Application{% endblock %}
+
 {% block content %}
+
 <div class="page-intro">
     <div>
         <h2>Your application</h2>
         <p>Complete each section, then review your information before submitting.</p>
-    </div><a class="btn btn-primary" href="{% url 'step_personal_information' %}">Continue application</a>
+    </div>
+
+{% if not is_ready_for_submission %}
+    <a class="btn btn-primary" href="{% url 'step_personal_information' %}">
+        Continue application
+    </a>
+{% endif %}
+
+
 </div>
+
 <div class="grid grid-2">
-    <section class="card card-pad">
-        <div class="section-title">Application checklist</div>
-        <p class="section-sub">Your progress across the required sections</p>
-        <div class="checklist">{% for item in checklist %}<div class="checklist-row">
-                <div class="checklist-left"><span class="checklist-name">{{ item.name }}</span></div><span
-                    class="status-badge status--{{ item.status_key }}">{{ item.status_label }}</span>
-            </div>{% endfor %}</div>
-    </section>
-    <section class="card card-pad">
-        <div class="section-title">Overall progress</div>
-        <p class="section-sub">{{ progress_percent }}% complete</p>
-        <div class="progress-bar-track">
-            <div class="progress-bar-fill" data-percent="{{ progress_percent }}" style="width:0"></div>
-        </div>{% if is_ready_for_submission %}<a class="btn btn-primary" href="{% url 'review_application' %}">Review
-            application</a>{% else %}<p class="section-sub">Complete all sections to unlock submission.</p>{% endif %}
-    </section>
+
+<!-- ============================================================
+     APPLICATION CHECKLIST
+     ============================================================ -->
+
+<section class="card card-pad">
+
+    <div class="section-title">
+        Application checklist
+    </div>
+
+    <p class="section-sub">
+        Your progress across the application
+    </p>
+
+
+    <div class="checklist">
+
+        {% for item in checklist %}
+
+            <div class="checklist-row">
+
+                <div class="checklist-left">
+
+                    <span class="checklist-icon checklist-icon--{{ item.status_key }}">
+
+                        {% if item.status_key == 'completed' %}
+
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="3"
+                                style="width:12px;height:12px;"
+                            >
+                                <path d="M5 13l4 4L19 7"/>
+                            </svg>
+
+                        {% elif item.status_key == 'needscorrection' %}
+
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="3"
+                                style="width:12px;height:12px;"
+                            >
+                                <line
+                                    x1="12"
+                                    y1="8"
+                                    x2="12"
+                                    y2="13"
+                                />
+                                <circle
+                                    cx="12"
+                                    cy="16.5"
+                                    r="0.5"
+                                    fill="currentColor"
+                                />
+                            </svg>
+
+                        {% elif item.status_key == 'inprogress' %}
+
+                            <span class="checklist-dot"></span>
+
+                        {% endif %}
+
+                    </span>
+
+
+                    <span class="checklist-name">
+                        {{ item.name }}
+                    </span>
+
+                </div>
+
+
+                <span class="status-badge status--{{ item.status_key }}">
+                    {{ item.status_label }}
+                </span>
+
+            </div>
+
+        {% empty %}
+
+            <div class="notice">
+                <div class="notice-title">
+                    No application sections found
+                </div>
+
+                <div class="notice-meta">
+                    Start your application to begin.
+                </div>
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+
+<!-- ============================================================
+     OVERALL PROGRESS
+     ============================================================ -->
+
+<section class="card card-pad">
+
+    <div class="section-title">
+        Overall progress
+    </div>
+
+    <p class="section-sub">
+        {{ progress_percent }}% complete
+    </p>
+
+
+    <div class="progress-bar-track">
+
+        <div
+            class="progress-bar-fill"
+            data-percent="{{ progress_percent }}"
+            style="width:0"
+        ></div>
+
+    </div>
+
+
+    {% if is_ready_for_submission %}
+
+        <div class="notice notice--ok">
+
+            <div class="notice-icon notice-icon--ok">
+
+                <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    style="width:16px;height:16px;"
+                >
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+
+            </div>
+
+            <div>
+
+                <div class="notice-title">
+                    All sections complete
+                </div>
+
+                <div class="notice-meta">
+                    Your application is ready to review and submit.
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <a
+            class="btn btn-primary"
+            href="{% url 'review_application' %}"
+        >
+            Review application
+        </a>
+
+
+    {% else %}
+
+        <div class="notice">
+
+            <div class="notice-icon notice-icon--warn">
+                !
+            </div>
+
+            <div>
+
+                <div class="notice-title">
+                    Sections still incomplete
+                </div>
+
+                <div class="notice-meta">
+                    Complete every required section to unlock submission.
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <a
+            class="btn btn-primary"
+            href="{% url 'step_personal_information' %}"
+        >
+            Continue application
+        </a>
+
+    {% endif %}
+
+</section>
+
 </div>
+
 {% endblock %}
