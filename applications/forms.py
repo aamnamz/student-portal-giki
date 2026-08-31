@@ -1,254 +1,674 @@
 from django import forms
-from .models import Application, PersonalInfo, ContactAddress, AcademicInfo, GuardianInfo, AdditionalInfo
+
 from .models import (
-    Application,
     PersonalInfo,
     ContactAddress,
     AcademicInfo,
-    GuardianInfo,
-    AdditionalInfo,
+    ProgramPreference,
+    AdmissionTest,
+    AdmissionScheme,
+    CurrentEmployment,
+    FormSubmission,
+    ProcessingFee,
+    RefereeInformation,
+    TestCenter,
+    Application,
 )
 
-class PortalForm(forms.ModelForm):
-    """Shared Bootstrap 5 validation defaults for all application section forms."""
+
+class StyledFormMixin:
+    """Adds the CSS classes our templates expect (form-control /
+    form-check-input) to every field's widget automatically, so we
+    never have to remember to set them field-by-field."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
-            field.widget.attrs.setdefault(
-                "class",
-                "form-select" if isinstance(field.widget, forms.Select) else "form-control",
-            )
-            field.required = True
-
-        for name, field in self.fields.items():
-            if "phone" in name or name == "emergency_contact_number":
-                field.widget.attrs.update(
-                    {
-                        "inputmode": "numeric",
-                        "pattern": "92[0-9]{10}",
-                        "maxlength": "12",
-                        "placeholder": "923XXXXXXXXX",
-                    }
-                )
-            elif "cnic" in name:
-                field.widget.attrs.update(
-                    {
-                        "inputmode": "numeric",
-                        "pattern": "[0-9]{5}-[0-9]{7}-[0-9]",
-                        "maxlength": "15",
-                        "placeholder": "12345-1234567-1",
-                    }
-                )
-            elif name == "postal_code":
-                field.widget.attrs.update(
-                    {"inputmode": "numeric", "pattern": "[0-9]{4,6}", "maxlength": "6"}
-                )
+            widget = field.widget
+            if isinstance(widget, (forms.CheckboxInput,)):
+                existing = widget.attrs.get("class", "")
+                widget.attrs["class"] = (existing + " form-check-input").strip()
+            elif isinstance(widget, (forms.RadioSelect,)):
+                # Radios are styled per-option in the template, not here.
+                continue
+            else:
+                existing = widget.attrs.get("class", "")
+                widget.attrs["class"] = (existing + " form-control").strip()
 
 
-class PersonalInformationForm(PortalForm):
-    student_photo = forms.ImageField(required=False)
+# ---------------------------------------------------------------------------
+# Section 1: Personal Information
+# ---------------------------------------------------------------------------
+class PersonalInformationForm(StyledFormMixin, forms.ModelForm):
+    # student_photo on the model is a TextField holding a base64 string —
+    # the view compresses/encodes the upload and writes it there itself.
+    # This field exists only to render a real file-upload widget; it is
+    # deliberately left OUT of Meta.fields below so Django's save/
+    # construct_instance machinery never touches the model's student_photo
+    # TextField directly — that's the view's job (see step_personal_
+    # information / _step_personal). Leaving it in Meta.fields would wipe
+    # out an existing photo any time the form is resubmitted without a new
+    # upload.
+    student_photo = forms.ImageField(
+        required=False,
+        help_text="Upload a passport-size photo (JPG or PNG).",
+    )
 
     class Meta:
         model = PersonalInfo
-<<<<<<< HEAD
-        fields = ["student_photo", "first_name", "last_name", "father_name", "mother_name", "date_of_birth", "cnic_or_bform", "blood_group", "gender", "marital_status", "nationality", "religion"]
-        widgets = {
-            "date_of_birth": forms.DateInput(attrs={"type": "date"}),
-            "blood_group": forms.Select(choices=[("" , "Select blood group"), ("A+", "A+"), ("A-", "A-"), ("B+", "B+"), ("B-", "B-"), ("AB+", "AB+"), ("AB-", "AB-"), ("O+", "O+"), ("O-", "O-")]),
-            "gender": forms.Select(choices=[("" , "Select gender"), *PersonalInfo.GENDER_CHOICES]),
-            "marital_status": forms.Select(choices=[("" , "Select marital status"), ("single", "Single"), ("married", "Married")]),
-            "nationality": forms.Select(choices=[("" , "Select nationality"), ("Pakistani", "Pakistani"), ("Other", "Other")]),
-            "religion": forms.Select(choices=[("" , "Select religion"), ("Islam", "Islam"), ("Christianity", "Christianity"), ("Hinduism", "Hinduism"), ("Sikhism", "Sikhism"), ("Other", "Other")]),
-=======
         fields = [
-            "student_photo", "first_name", "last_name", "father_name", "mother_name",
-            "date_of_birth", "cnic_or_bform", "blood_group", "gender",
-            "marital_status", "nationality", "religion",
+            "full_name",
+            "father_name",
+            "guardian_name",
+            "guardian_contact_no",
+            "cell_no",
+            "religion",
+            "date_of_birth",
+            "gender",
+            "nationality",
+            "cnic",
+            "passport_no",
+            "domicile_province",
+            "domicile_district",
+            "disability_status",
         ]
         widgets = {
-            "date_of_birth": forms.DateInput(attrs={"type": "date"}),
-            "blood_group": forms.Select(
-                choices=[("", "Select blood group"), ("A+", "A+"), ("A-", "A-"),
-                         ("B+", "B+"), ("B-", "B-"), ("AB+", "AB+"), ("AB-", "AB-"),
-                         ("O+", "O+"), ("O-", "O-")]
+            "date_of_birth": forms.DateInput(
+                attrs={"type": "date"},
+                format="%Y-%m-%d",
             ),
-            "gender": forms.Select(
-                choices=[("", "Select gender"), *Application.GENDER_CHOICES]
-            ),
-            "marital_status": forms.Select(
-                choices=[("", "Select marital status"), ("single", "Single"), ("married", "Married")]
-            ),
+            "gender": forms.RadioSelect,
+            "disability_status": forms.RadioSelect,
             "nationality": forms.Select(
-                choices=[("", "Select nationality"), ("Pakistani", "Pakistani"), ("Other", "Other")]
+                attrs={"data-nationality-select": "true"}
             ),
-            "religion": forms.Select(
-                choices=[
-                    ("", "Select religion"), ("Islam", "Islam"), ("Christianity", "Christianity"),
-                    ("Hinduism", "Hinduism"), ("Sikhism", "Sikhism"), ("Other", "Other"),
-                ]
+            "cnic": forms.TextInput(
+                attrs={
+                    "placeholder": "12345-1234567-1",
+                    "data-nationality-toggle": "Pakistani",
+                    "inputmode": "numeric",
+                }
             ),
->>>>>>> 6407056 (added custom user model)
+            "passport_no": forms.TextInput(
+                attrs={
+                    "placeholder": "AB1234567",
+                    "data-nationality-toggle": "Other",
+                }
+            ),
+            "guardian_contact_no": forms.TextInput(
+                attrs={
+                    "placeholder": "923XXXXXXXXX",
+                    "inputmode": "numeric",
+                    "maxlength": "12",
+                }
+            ),
+            "cell_no": forms.TextInput(
+                attrs={
+                    "placeholder": "923XXXXXXXXX",
+                    "inputmode": "numeric",
+                    "maxlength": "12",
+                }
+            ),
+            "full_name": forms.TextInput(attrs={"pattern": "[A-Za-z '\\-]+"}),
+            "father_name": forms.TextInput(attrs={"pattern": "[A-Za-z '\\-]+"}),
+            "guardian_name": forms.TextInput(attrs={"pattern": "[A-Za-z '\\-]+"}),
+            "domicile_district": forms.TextInput(
+                attrs={"pattern": "[A-Za-z '\\-]+"}
+            ),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["student_photo"].required = not bool(
-            self.instance and self.instance.student_photo
-        )
+        # guardian_name is the only field on this form that isn't required.
+        self.fields["guardian_name"].required = False
+        # cnic / passport_no are conditionally required — enforced in
+        # clean(), not here, so the empty one never blocks submission.
+        self.fields["cnic"].required = False
+        self.fields["passport_no"].required = False
+
+    def clean(self):
+        cleaned_data = super().clean()
+        nationality = cleaned_data.get("nationality")
+        cnic = cleaned_data.get("cnic")
+        passport_no = cleaned_data.get("passport_no")
+
+        if nationality == "Pakistani":
+            if not cnic:
+                self.add_error(
+                    "cnic", "CNIC is required for Pakistani nationals."
+                )
+            if passport_no:
+                self.add_error(
+                    "passport_no",
+                    "Passport number should only be provided for "
+                    "non-Pakistani nationals.",
+                )
+        else:
+            if not passport_no:
+                self.add_error(
+                    "passport_no",
+                    "Passport number is required for non-Pakistani "
+                    "nationals.",
+                )
+            if cnic:
+                self.add_error(
+                    "cnic",
+                    "CNIC should only be provided for Pakistani nationals.",
+                )
+
+        return cleaned_data
 
 
-class ContactAddressForm(PortalForm):
+# ---------------------------------------------------------------------------
+# Section 2: Contact & Address
+# ---------------------------------------------------------------------------
+class ContactAddressForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = ContactAddress
-<<<<<<< HEAD
-        fields = ["phone", "alternate_phone", "present_address", "permanent_address", "city", "district", "province", "postal_code", "domicile_province", "domicile_district"]
-        widgets = {
-            "present_address": forms.Textarea(attrs={"rows": 4, "maxlength": 200}),
-            "permanent_address": forms.Textarea(attrs={"rows": 4, "maxlength": 200}),
-            "province": forms.Select(choices=[("" , "Select province")] + ContactAddress._meta.get_field('province').choices),
-            "domicile_province": forms.Select(choices=[("" , "Select province")] + ContactAddress._meta.get_field('domicile_province').choices),
-=======
         fields = [
-            "phone", "alternate_phone", "present_address", "permanent_address",
-            "city", "district", "province", "postal_code",
-            "domicile_province", "domicile_district",
+            "mailing_same_as_permanent",
+            "permanent_house_street_no",
+            "permanent_mohalla_tehsil",
+            "permanent_district",
+            "permanent_city",
+            "permanent_phone",
+            "permanent_courier_available",
+            "mailing_house_street_no",
+            "mailing_mohalla_tehsil",
+            "mailing_district",
+            "mailing_city",
+            "mailing_phone",
+            "mailing_courier_available",
         ]
         widgets = {
-            "present_address": forms.Textarea(attrs={"rows": 4, "maxlength": 200}),
-            "permanent_address": forms.Textarea(attrs={"rows": 4, "maxlength": 200}),
-            "province": forms.Select(
-                choices=[("", "Select province"), *ContactAddress._meta.get_field("province").choices]
+            "mailing_same_as_permanent": forms.CheckboxInput(
+                attrs={"data-same-as-toggle": "mailing-address-fields"}
             ),
-            "domicile_province": forms.Select(
-                choices=[("", "Select domicile province"), *ContactAddress._meta.get_field("domicile_province").choices]
+            "permanent_phone": forms.TextInput(
+                attrs={
+                    "placeholder": "923XXXXXXXXX",
+                    "inputmode": "numeric",
+                    "maxlength": "12",
+                }
             ),
->>>>>>> 6407056 (added custom user model)
+            "mailing_phone": forms.TextInput(
+                attrs={
+                    "placeholder": "923XXXXXXXXX",
+                    "inputmode": "numeric",
+                    "maxlength": "12",
+                }
+            ),
+            "permanent_courier_available": forms.CheckboxInput(),
+            "mailing_courier_available": forms.CheckboxInput(),
+            "permanent_mohalla_tehsil": forms.TextInput(
+                attrs={"pattern": "[A-Za-z '\\-]+"}
+            ),
+            "permanent_district": forms.TextInput(
+                attrs={"pattern": "[A-Za-z '\\-]+"}
+            ),
+            "permanent_city": forms.TextInput(
+                attrs={"pattern": "[A-Za-z '\\-]+"}
+            ),
+            "mailing_mohalla_tehsil": forms.TextInput(
+                attrs={"pattern": "[A-Za-z '\\-]+"}
+            ),
+            "mailing_district": forms.TextInput(
+                attrs={"pattern": "[A-Za-z '\\-]+"}
+            ),
+            "mailing_city": forms.TextInput(
+                attrs={"pattern": "[A-Za-z '\\-]+"}
+            ),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Courier-available is the only genuinely optional field on either
+        # address block; everything else in "mailing" is only optional at
+        # the widget level because it may get filled in by JS/clean().
+        for field in [
+            "permanent_courier_available",
+            "mailing_courier_available",
+            "mailing_house_street_no",
+            "mailing_mohalla_tehsil",
+            "mailing_district",
+            "mailing_city",
+            "mailing_phone",
+        ]:
+            self.fields[field].required = False
 
-class AcademicInformationForm(PortalForm):
+    def clean(self):
+        cleaned_data = super().clean()
+
+        if cleaned_data.get("mailing_same_as_permanent"):
+            cleaned_data["mailing_house_street_no"] = cleaned_data.get(
+                "permanent_house_street_no"
+            )
+            cleaned_data["mailing_mohalla_tehsil"] = cleaned_data.get(
+                "permanent_mohalla_tehsil"
+            )
+            cleaned_data["mailing_district"] = cleaned_data.get(
+                "permanent_district"
+            )
+            cleaned_data["mailing_city"] = cleaned_data.get("permanent_city")
+            cleaned_data["mailing_phone"] = cleaned_data.get(
+                "permanent_phone"
+            )
+            cleaned_data["mailing_courier_available"] = cleaned_data.get(
+                "permanent_courier_available"
+            )
+            return cleaned_data
+
+        required_when_different = [
+            "mailing_house_street_no",
+            "mailing_mohalla_tehsil",
+            "mailing_district",
+            "mailing_city",
+            "mailing_phone",
+        ]
+        for field in required_when_different:
+            if not cleaned_data.get(field):
+                self.add_error(
+                    field,
+                    "This field is required unless 'same as permanent "
+                    "address' is checked.",
+                )
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if self.cleaned_data.get("mailing_same_as_permanent"):
+            instance.mailing_house_street_no = self.cleaned_data[
+                "mailing_house_street_no"
+            ]
+            instance.mailing_mohalla_tehsil = self.cleaned_data[
+                "mailing_mohalla_tehsil"
+            ]
+            instance.mailing_district = self.cleaned_data["mailing_district"]
+            instance.mailing_city = self.cleaned_data["mailing_city"]
+            instance.mailing_phone = self.cleaned_data["mailing_phone"]
+            instance.mailing_courier_available = self.cleaned_data[
+                "mailing_courier_available"
+            ]
+        if commit:
+            instance.save()
+        return instance
+
+
+# ---------------------------------------------------------------------------
+# Section 3: Previous / Academic Education
+# ---------------------------------------------------------------------------
+
+# Reference mapping for the dependent Board/University dropdown. Dump this
+# to the template with `{{ boards_by_degree|json_script:"boards-by-degree" }}`
+# and have your JS repopulate the board_university <select>/<datalist>
+# whenever degree_certificate changes.
+BOARDS_BY_DEGREE = {
+    "matric": [
+        "BISE Peshawar", "BISE Lahore", "BISE Karachi",
+        "Federal Board (FBISE)", "Other",
+    ],
+    "intermediate": [
+        "BISE Peshawar", "BISE Lahore", "BISE Karachi",
+        "Federal Board (FBISE)", "Cambridge (A-Level)", "Other",
+    ],
+    "bachelor": [
+        "University of Peshawar", "Punjab University", "Karachi University",
+        "NUST", "COMSATS", "Other",
+    ],
+    "master": [
+        "University of Peshawar", "Punjab University", "Karachi University",
+        "NUST", "COMSATS", "Other",
+    ],
+    "other": ["Other"],
+}
+
+
+class AcademicInformationForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = AcademicInfo
-<<<<<<< HEAD
-        fields = ["matric_board", "matric_year", "matric_total_marks", "matric_marks", "matric_grade", "intermediate_result", "intermediate_board", "intermediate_group", "intermediate_year", "intermediate_total_marks", "intermediate_marks", "intermediate_grade", "entry_test_score", "degree_program"]
-        widgets = {
-            "matric_board": forms.Select(choices=[("" , "Select matric group"), ("Biology", "Biology"), ("Computer", "Computer")]),
-            "intermediate_result": forms.Select(choices=[("" , "Select result"), ("passed", "Passed"), ("awaited", "Awaited")]),
-=======
         fields = [
-            "matric_board", "matric_year", "matric_total_marks", "matric_marks",
-            "matric_grade", "intermediate_result", "intermediate_board",
-            "intermediate_group", "intermediate_year", "intermediate_total_marks",
-            "intermediate_marks", "intermediate_grade", "degree_program",
+            "degree_certificate",
+            "board_university",
+            "degree_title",
+            "institute_name",
+            "obtained_marks",
+            "total_marks",
+            "passing_year",
+            "study_group",
+            "country_studied",
+            "result_declared",
         ]
         widgets = {
-            "matric_board": forms.Select(
-                choices=[("", "Select matric group"), ("Biology", "Biology"), ("Computer", "Computer")]
+            "degree_certificate": forms.Select(
+                attrs={"data-degree-select": "true"}
             ),
-            "intermediate_result": forms.Select(
-                choices=[("", "Select intermediate result"), ("passed", "Result Available"), ("awaited", "Result Awaited")]
+            "board_university": forms.TextInput(
+                attrs={
+                    "list": "board-university-options",
+                    "data-degree-target": "true",
+                }
             ),
-            "intermediate_group": forms.Select(
-                choices=[
-                    ("", "Select group"), ("Pre-Engineering", "Pre-Engineering"),
-                    ("Pre-Medical", "Pre-Medical"), ("Computer Science", "Computer Science"),
-                    ("Humanities", "Humanities"), ("Commerce", "Commerce"),
-                ]
+            "result_declared": forms.RadioSelect,
+            "passing_year": forms.NumberInput(
+                attrs={"min": 1950, "max": 2035}
             ),
-            "degree_program": forms.Select(
-                choices=[
-                    ("", "Select degree program"),
-                    ("BS Aerospace Engineering", "BS Aerospace Engineering"),
-                    ("BS Computer Science", "BS Computer Science"),
-                    ("BS Cybersecurity", "BS Cybersecurity"),
-                    ("BS Data Science", "BS Data Science"),
-                    ("BS Chemical Engineering", "BS Chemical Engineering"),
-                    ("BS Software Engineering", "BS Software Engineering"),
-                    ("BS Civil Engineering", "BS Civil Engineering"),
-                    ("BS Mechanical Engineering", "BS Mechanical Engineering"),
-                ]
+            "country_studied": forms.TextInput(
+                attrs={"pattern": "[A-Za-z '\\-]+"}
             ),
->>>>>>> 6407056 (added custom user model)
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        obtained_marks = cleaned_data.get("obtained_marks")
+        total_marks = cleaned_data.get("total_marks")
+
+        if (
+            obtained_marks is not None
+            and total_marks is not None
+            and obtained_marks > total_marks
+        ):
+            self.add_error(
+                "obtained_marks",
+                "Obtained marks/CGPA cannot exceed total marks/scale.",
+            )
+
+        return cleaned_data
+
+
+# ---------------------------------------------------------------------------
+# Section 4: Program Preferences
+# ---------------------------------------------------------------------------
+class ProgramPreferenceForm(StyledFormMixin, forms.ModelForm):
+    class Meta:
+        model = ProgramPreference
+        fields = ["program_choice"]
+
+
+# ---------------------------------------------------------------------------
+# Section 5: Admission Test
+# ---------------------------------------------------------------------------
+class AdmissionTestForm(StyledFormMixin, forms.ModelForm):
+    # Same base64-in-TextField pattern as PersonalInformationForm's
+    # student_photo — kept out of Meta.fields, the view writes to
+    # evidence_document/evidence_document_type itself.
+    evidence_document = forms.FileField(
+        required=False,
+        help_text="Upload proof of your qualified entrance test result "
+        "(PDF, JPG, or PNG).",
+    )
+
+    class Meta:
+        model = AdmissionTest
+        fields = [
+            "entry_test_option",
+            "test_center",
+            "test_center_name",
+            "test_type",
+            "obtained_marks",
+            "total_marks",
+            "date_of_test",
+        ]
+        widgets = {
+            "entry_test_option": forms.RadioSelect(
+                attrs={"data-entry-test-toggle": "true"}
+            ),
+            "date_of_test": forms.DateInput(
+                attrs={"type": "date"},
+                format="%Y-%m-%d",
+            ),
+            "test_center_name": forms.TextInput(
+                attrs={"data-already-qualified-field": "true"}
+            ),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        numeric_fields = (
-            "matric_year", "matric_total_marks", "matric_marks",
-            "intermediate_year", "intermediate_total_marks", "intermediate_marks",
-        )
-        for name in numeric_fields:
-            self.fields[name].widget = forms.TextInput(
-                attrs={"class": "form-control", "inputmode": "numeric", "pattern": "[0-9]+", "maxlength": "4"}
+        # These five are only required when entry_test_option is
+        # "already_qualified" — enforced in clean(), not here.
+        for field in [
+            "test_center_name",
+            "test_type",
+            "obtained_marks",
+            "total_marks",
+            "date_of_test",
+        ]:
+            self.fields[field].required = False
+
+    def clean(self):
+        cleaned_data = super().clean()
+        entry_test_option = cleaned_data.get("entry_test_option")
+
+        if entry_test_option != "already_qualified":
+            return cleaned_data
+
+        required_fields = [
+            "test_center_name",
+            "test_type",
+            "obtained_marks",
+            "total_marks",
+            "date_of_test",
+        ]
+        for field in required_fields:
+            if not cleaned_data.get(field):
+                self.add_error(
+                    field,
+                    "This field is required when you have already "
+                    "qualified the entrance test.",
+                )
+
+        obtained_marks = cleaned_data.get("obtained_marks")
+        total_marks = cleaned_data.get("total_marks")
+        if (
+            obtained_marks is not None
+            and total_marks is not None
+            and obtained_marks > total_marks
+        ):
+            self.add_error(
+                "obtained_marks",
+                "Obtained marks cannot exceed total marks.",
             )
-        result = (
-            self.data.get(self.add_prefix("intermediate_result"))
-            if self.is_bound
-            else (self.instance.intermediate_result if self.instance else "")
-        )
-        if result == "awaited":
-            for name in (
-                "intermediate_board", "intermediate_group", "intermediate_year",
-                "intermediate_total_marks", "intermediate_marks", "intermediate_grade",
-            ):
-                self.fields[name].required = False
+
+        return cleaned_data
 
 
-class GuardianInformationForm(PortalForm):
+# ---------------------------------------------------------------------------
+# Section 6: Admission Scheme
+# ---------------------------------------------------------------------------
+class AdmissionSchemeForm(StyledFormMixin, forms.ModelForm):
     class Meta:
-        model = GuardianInfo
-<<<<<<< HEAD
-        fields = ["guardian_name", "guardian_relationship", "guardian_occupation", "guardian_phone", "guardian_cnic", "guardian_income", "emergency_contact_name", "emergency_contact_relationship", "emergency_contact_number", "guardian_email", "guardian_address"]
-        widgets = {
-            "guardian_relationship": forms.Select(choices=[("" , "Select relationship"), ("Father", "Father"), ("Mother", "Mother"), ("Brother", "Brother"), ("Sister", "Sister"), ("Uncle", "Uncle"), ("Aunt", "Aunt"), ("Other", "Other")]),
-            "guardian_address": forms.Textarea(attrs={"rows": 4, "maxlength": 200}),
-            "emergency_contact_relationship": forms.Select(choices=[("" , "Select relationship"), ("Father", "Father"), ("Mother", "Mother"), ("Brother", "Brother"), ("Sister", "Sister"), ("Friend", "Friend"), ("Other", "Other")]),
-=======
+        model = AdmissionScheme
         fields = [
-            "guardian_name", "guardian_relationship", "guardian_occupation",
-            "guardian_phone", "guardian_cnic", "guardian_income",
-            "emergency_contact_name", "emergency_contact_relationship", "emergency_contact_number",
+            "admission_scheme",
+            "ga_ship_interest",
+            "day_scholar_interest",
         ]
         widgets = {
-            "guardian_relationship": forms.Select(
-                choices=[
-                    ("", "Select relationship"), ("Father", "Father"), ("Mother", "Mother"),
-                    ("Brother", "Brother"), ("Sister", "Sister"), ("Uncle", "Uncle"),
-                    ("Legal Guardian", "Legal Guardian"), ("Other", "Other"),
-                ]
-            )
->>>>>>> 6407056 (added custom user model)
-        }
-
-
-class AdditionalInformationForm(PortalForm):
-    class Meta:
-        model = AdditionalInfo
-        fields = ["hostel_required", "scholarship_required", "disability_status"]
-        widgets = {
-            "hostel_required": forms.RadioSelect(choices=[(True, "Yes"), (False, "No")]),
-            "scholarship_required": forms.RadioSelect(choices=[(True, "Yes"), (False, "No")]),
-            "disability_status": forms.RadioSelect(choices=[(True, "Yes"), (False, "No")]),
+            "ga_ship_interest": forms.RadioSelect(
+                choices=[(True, "Yes"), (False, "No")]
+            ),
+            "day_scholar_interest": forms.RadioSelect(
+                choices=[(True, "Yes"), (False, "No")]
+            ),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        for field in self.fields.values():
-            field.widget.attrs["class"] = "form-check-input"
+        self.fields["ga_ship_interest"].required = False
+        self.fields["day_scholar_interest"].required = False
 
 
-class DeclarationForm(PortalForm):
-    declaration_accepted = forms.BooleanField(label="I certify that the information provided is true.")
-<<<<<<< HEAD
-    
-=======
+# ---------------------------------------------------------------------------
+# Section 7: Current Employment
+# ---------------------------------------------------------------------------
+class CurrentEmploymentForm(StyledFormMixin, forms.ModelForm):
+    class Meta:
+        model = CurrentEmployment
+        fields = [
+            "no_employment_history",
+            "employer",
+            "job_title",
+            "date_of_joining",
+            "still_working_here",
+        ]
+        widgets = {
+            "no_employment_history": forms.CheckboxInput(
+                attrs={"data-same-as-toggle": "employment-fields"}
+            ),
+            "date_of_joining": forms.DateInput(
+                attrs={"type": "date"},
+                format="%Y-%m-%d",
+            ),
+            "job_title": forms.TextInput(attrs={"pattern": "[A-Za-z '\\-]+"}),
+            "still_working_here": forms.CheckboxInput(),
+        }
 
->>>>>>> 6407056 (added custom user model)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Only required unless "No Employment History" is checked —
+        # enforced in clean(), not here.
+        for field in [
+            "employer",
+            "job_title",
+            "date_of_joining",
+            "still_working_here",
+        ]:
+            self.fields[field].required = False
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        if cleaned_data.get("no_employment_history"):
+            return cleaned_data
+
+        required_fields = ["employer", "job_title", "date_of_joining"]
+        for field in required_fields:
+            if not cleaned_data.get(field):
+                self.add_error(
+                    field,
+                    "This field is required unless 'No Employment "
+                    "History' is checked.",
+                )
+
+        return cleaned_data
+
+
+# ---------------------------------------------------------------------------
+# Section 8: Form Submission
+# ---------------------------------------------------------------------------
+class FormSubmissionForm(StyledFormMixin, forms.ModelForm):
+    class Meta:
+        model = FormSubmission
+        fields = []
+
+# ---------------------------------------------------------------------------
+# SECTION II
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# 9. Processing Fee
+# ---------------------------------------------------------------------------
+class ProcessingFeeForm(StyledFormMixin, forms.ModelForm):
+    # Same base64-in-TextField pattern as PersonalInformationForm's
+    # student_photo — kept out of Meta.fields, the view writes to
+    # proof_of_payment/proof_of_payment_type itself.
+    proof_of_payment = forms.FileField(
+        required=False,
+        help_text="Attach your payment receipt/slip (PDF, JPG, or PNG).",
+    )
+
+    class Meta:
+        model = ProcessingFee
+        fields = [
+            "bank_provider_name",
+            "payment_mode",
+            "payment_date",
+            "amount",
+            "reference_number",
+            "fee_deposited",
+        ]
+        widgets = {
+            "payment_date": forms.DateInput(
+                attrs={"type": "date"},
+                format="%Y-%m-%d",
+            ),
+            "amount": forms.NumberInput(attrs={"min": 0, "step": "0.01"}),
+            "fee_deposited": forms.CheckboxInput(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["fee_deposited"].required = False
+
+
+# ---------------------------------------------------------------------------
+# 10. References & LOR
+# ---------------------------------------------------------------------------
+class RefereeInformationForm(StyledFormMixin, forms.ModelForm):
+    # Same base64-in-TextField pattern as PersonalInformationForm's
+    # student_photo — kept out of Meta.fields, the view writes to
+    # recommendation_letter/recommendation_letter_type itself.
+    recommendation_letter = forms.FileField(
+        required=False,
+        help_text="Upload the signed Letter of Recommendation "
+        "(PDF, JPG, or PNG).",
+    )
+
+    class Meta:
+        model = RefereeInformation
+        fields = [
+            "referee_name",
+            "contact_number",
+            "email",
+            "university_name",
+            "designation",
+        ]
+        widgets = {
+            "contact_number": forms.TextInput(
+                attrs={
+                    "placeholder": "923XXXXXXXXX",
+                    "inputmode": "numeric",
+                    "maxlength": "12",
+                }
+            ),
+            "referee_name": forms.TextInput(attrs={"pattern": "[A-Za-z '\\-]+"}),
+            "designation": forms.TextInput(attrs={"pattern": "[A-Za-z '\\-]+"}),
+        }
+
+
+# ---------------------------------------------------------------------------
+# SECTION III
+# 11. Test Center
+#
+# The model only has a status field for now (see the comment above
+# TestCenter in models.py) — this form mirrors that until the required
+# fields are confirmed.
+# ---------------------------------------------------------------------------
+class TestCenterForm(StyledFormMixin, forms.ModelForm):
+    class Meta:
+        model = TestCenter
+        fields = []
+
+
+# ---------------------------------------------------------------------------
+# Declaration
+# ---------------------------------------------------------------------------
+class DeclarationForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = Application
         fields = ["declaration_accepted"]
+        labels = {
+            "declaration_accepted": (
+                "I declare that the information provided in this "
+                "application is true and complete to the best of my "
+                "knowledge."
+            ),
+        }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["declaration_accepted"].widget.attrs["class"] = "form-check-input"
+    def clean_declaration_accepted(self):
+        accepted = self.cleaned_data.get("declaration_accepted")
+        if not accepted:
+            raise forms.ValidationError(
+                "You must accept the declaration to continue."
+            )
+        return accepted

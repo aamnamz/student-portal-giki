@@ -38,20 +38,10 @@ def _build_timeline(application):
 def dashboard(request):
     application, _ = Application.objects.get_or_create(applicant=request.user)
     cycle = AdmissionCycle.get_active()
-
-    # application.documents works via the related_name set on
-    # documents.Document.application — no import from documents needed.
-    documents = application.documents.all()
-    docs_uploaded = documents.filter(status__in=["uploaded", "under_verification", "verified"]).count()
-    docs_missing = documents.filter(status="not_uploaded").count()
-    docs_pending = documents.filter(status="under_verification").count()
-    docs_correction = documents.filter(status__in=["rejected", "replace_required"]).count()
-
     important_dates = []
     if cycle:
         date_fields = [
             ("Application Deadline", cycle.application_deadline, True),
-            ("Document Submission Deadline", cycle.document_deadline, False),
             ("Entry Test Date", cycle.entry_test_date, False),
             ("Interview Date", cycle.interview_date, False),
             ("Admission Decision Date", cycle.decision_date, False),
@@ -97,11 +87,6 @@ def dashboard(request):
 
         "checklist": application.checklist,
         "important_dates": important_dates,
-
-        "docs_uploaded": docs_uploaded,
-        "docs_missing": docs_missing,
-        "docs_pending": docs_pending,
-        "docs_correction": docs_correction,
 
         "notices": [
             {"type": n.notice_type, "title": n.title, "meta": n.created_at.strftime("%b %d, %Y")}

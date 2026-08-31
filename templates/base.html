@@ -1,25 +1,22 @@
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
 
+<!DOCTYPE html>
+
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Applicant Portal{% endblock %} · GIKI</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
   {% block extra_head %}{% endblock %}
 </head>
-
 <body>
   <div class="portal" id="portal">
-
-    <!-- ===================== SIDEBAR ===================== -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-brand">
         <img class="logo-mark" src="{% static 'dashboard/images/giki.png' %}" alt="GIKI logo">
@@ -28,7 +25,6 @@
           <span class="brand-sub">Applicant Portal</span>
         </div>
       </div>
-
       <nav class="sidebar-nav" aria-label="Primary">
         <a href="{% url 'dashboard' %}" class="nav-item {% if active_nav == 'dashboard' %}active{% endif %}">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -39,53 +35,73 @@
           </svg>
           <span>Dashboard</span>
         </a>
-        <button class="nav-item application-toggle {% if active_nav == 'application' %}active{% endif %}" type="button"
-          aria-expanded="{% if active_nav == 'application' %}true{% else %}false{% endif %}"
-          aria-controls="applicationSubnav">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
-            <path d="M14 3v5h5" />
-            <path d="M9 13h6M9 17h6" />
-          </svg>
-          <span>My Application</span>
-          <svg class="nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="m6 9 6 6 6-6" />
-          </svg>
-        </button>
-        <div class="application-subnav {% if active_nav == 'application' %}open{% endif %}" id="applicationSubnav">
-          <a href="{% url 'my_application' %}" class="subnav-item {% if request.resolver_match.url_name == 'my_application' %}active{% endif %}">Application Overview</a>
-          <a href="{% url 'step_personal_information' %}" class="subnav-item {% if request.resolver_match.url_name == 'step_personal_information' %}active{% endif %}">Personal Info</a>
-          <a href="{% url 'step_contact_address' %}" class="subnav-item {% if request.resolver_match.url_name == 'step_contact_address' %}active{% endif %}">Address &amp; Contact Info</a>
-          <a href="{% url 'step_guardian_information' %}" class="subnav-item {% if request.resolver_match.url_name == 'step_guardian_information' %}active{% endif %}">Guardian Info</a>
-          <a href="{% url 'step_academic_information' %}" class="subnav-item {% if request.resolver_match.url_name == 'step_academic_information' %}active{% endif %}">Previous Education</a>
-          <a href="{% url 'step_additional_information' %}" class="subnav-item {% if request.resolver_match.url_name == 'step_additional_information' %}active{% endif %}">Additional Info</a>
-          <a href="{% url 'documents' %}" class="subnav-item {% if request.resolver_match.url_name == 'documents' %}active{% endif %}">Upload Documents</a>
+        <div class="nav-section-title"></div>
+        <div class="application-section">
+          <div class="application-section-title">
+            <span>SECTION I</span>
+          </div>
+          <div class="application-subnav open">
+            <a href="{% url 'step_personal_information' %}" class="subnav-item {% if request.resolver_match.url_name == 'step_personal_information' %}active{% endif %}">
+              <span class="step-number">1.</span>
+              <span>Personal Information</span>
+            </a>
+            <a href="{% url 'step_contact_address' %}" class="subnav-item {% if request.resolver_match.url_name == 'step_contact_address' %}active{% endif %}">
+              <span class="step-number">2.</span>
+              <span>Contact &amp; Address</span>
+            </a>
+            <a href="{% url 'step_academic_information' %}" class="subnav-item {% if request.resolver_match.url_name == 'step_academic_information' %}active{% endif %}">
+              <span class="step-number">3.</span>
+              <span>Academic Information</span>
+            </a>
+            <a href="{% url 'step_program_preference' %}" class="subnav-item {% if request.resolver_match.url_name == 'step_program_preference' %}active{% endif %}">
+              <span class="step-number">4.</span>
+              <span>Program Preferences</span>
+            </a>
+            <a href="{% url 'step_admission_test' %}" class="subnav-item {% if request.resolver_match.url_name == 'step_admission_test' %}active{% endif %}">
+              <span class="step-number">5.</span>
+              <span>Admission Test</span>
+            </a>
+            <a href="{% url 'step_admission_scheme' %}" class="subnav-item {% if request.resolver_match.url_name == 'step_admission_scheme' %}active{% endif %}">
+              <span class="step-number">6.</span>
+              <span>Admission Scheme</span>
+            </a>
+            <a href="{% url 'step_employment' %}" class="subnav-item {% if request.resolver_match.url_name == 'step_employment' %}active{% endif %}">
+              <span class="step-number">7.</span>
+              <span>Current Employment</span>
+            </a>
+            <div class="subnav-item disabled">
+              <span class="step-number">8.</span>
+              <span>Documents</span>
+            </div>
+          </div>
         </div>
-        <a href="{% url 'accounts:my_profile' %}" class="nav-item {% if active_nav == 'profile' %}active{% endif %}">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <circle cx="12" cy="8" r="3.5" />
-            <path d="M5 20c1.2-3.6 4-5.5 7-5.5s5.8 1.9 7 5.5" />
-          </svg>
-          <span>My Profile</span>
-        </a>
-        <a href="{% url 'application_status' %}" class="nav-item {% if active_nav == 'status' %}active{% endif %}">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <circle cx="12" cy="12" r="9" />
-            <path d="M12 7v5l3.5 2" />
-          </svg>
-          <span>Application Status</span>
-        </a>
-
+        <div class="application-section">
+          <div class="application-section-title">
+            <span>SECTION II</span>
+          </div>
+          <div class="application-subnav open">
+            <div class="subnav-item disabled">
+              <span class="step-number">9.</span>
+              <span>Processing Fee</span>
+            </div>
+            <div class="subnav-item disabled">
+              <span class="step-number">10.</span>
+              <span>References &amp; LOR</span>
+            </div>
+          </div>
+        </div>
+        <div class="application-section">
+          <div class="application-section-title">
+            <span>SECTION III</span>
+          </div>
+          <div class="application-subnav open">
+            <div class="subnav-item disabled">
+              <span class="step-number">11.</span>
+              <span>Test Center</span>
+            </div>
+          </div>
+        </div>
         <div class="nav-divider"></div>
-
-        <a href="{% url 'accounts:settings' %}" class="nav-item {% if active_nav == 'settings' %}active{% endif %}">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <circle cx="12" cy="12" r="3" />
-            <path
-              d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z" />
-          </svg>
-          <span>Settings</span>
-        </a>
         <a href="{% url 'help_contact' %}" class="nav-item {% if active_nav == 'help' %}active{% endif %}">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <circle cx="12" cy="12" r="9" />
@@ -95,7 +111,6 @@
           <span>Help / Contact Admissions</span>
         </a>
       </nav>
-
       <div class="sidebar-footer">
         <form action="{% url 'accounts:logout' %}" method="post">
           {% csrf_token %}
@@ -110,19 +125,14 @@
         </form>
       </div>
     </aside>
-
     <div class="sidebar-scrim" id="sidebarScrim"></div>
-
-    <!-- ===================== MAIN COLUMN ===================== -->
     <div class="main">
       <header class="topbar d-flex align-items-center gap-3">
-        <button class="icon-btn sidebar-toggle" id="sidebarToggle" type="button" aria-label="Toggle sidebar"
-          aria-expanded="false" aria-controls="sidebar">
+        <button class="icon-btn sidebar-toggle" id="sidebarToggle" type="button" aria-label="Toggle sidebar" aria-expanded="false" aria-controls="sidebar">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <path d="M3 6h18M3 12h18M3 18h18" />
           </svg>
         </button>
-
         <div class="topbar-actions d-flex align-items-center ms-auto">
           <button class="icon-btn position-relative" aria-label="Notifications">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -131,17 +141,11 @@
             </svg>
             {% if notification_count %}<span class="badge-dot">{{ notification_count }}</span>{% endif %}
           </button>
-
           <div class="topbar-divider"></div>
-
           <div class="profile-menu">
             <button class="profile-trigger d-flex align-items-center gap-2" id="profileTrigger">
-              <span class="avatar">
-                {% if applicant_initials %}{{ applicant_initials }}{% else %}{{ request.user.username|slice:":2"|upper }}{% endif %}
-              </span>
-              <span class="profile-name">
-                {% if applicant_name %}{{ applicant_name }}{% elif request.user.get_full_name %}{{ request.user.get_full_name }}{% else %}{{ request.user.username }}{% endif %}
-              </span>
+              <span class="avatar">{% if applicant_initials %}{{ applicant_initials }}{% else %}{{ request.user.username|slice:":2"|upper }}{% endif %}</span>
+              <span class="profile-name">{% if applicant_name %}{{ applicant_name }}{% elif request.user.get_full_name %}{{ request.user.get_full_name }}{% else %}{{ request.user.username }}{% endif %}</span>
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M6 9l6 6 6-6" />
               </svg>
@@ -158,22 +162,18 @@
           </div>
         </div>
       </header>
-
       <main class="content">
         {% block content %}{% endblock %}
       </main>
     </div>
   </div>
-
   <div class="page-loader" id="pageLoader" aria-live="polite" aria-label="Loading" hidden>
     <div class="page-loader-card">
       <img class="giki-loader" src="{% static 'dashboard/images/giki.png' %}" alt="">
       <span>Processing, please wait…</span>
     </div>
   </div>
-
   <script src="{% static 'dashboard/js/dashboard.js' %}"></script>
   {% block extra_scripts %}{% endblock %}
 </body>
-
 </html>

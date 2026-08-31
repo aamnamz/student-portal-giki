@@ -4,16 +4,10 @@ from django.db import models
 from django.core.validators import RegexValidator
 
 
-class User(AbstractUser):
-    """Custom User model to support future role-based authorization."""
-    pass
-
-
 pakistani_phone = RegexValidator(
     r'^92\d{10}$',
     'Enter a valid phone number starting with 92 followed by 10 digits.',
 )
-
 
 class CustomUser(AbstractUser):
     """

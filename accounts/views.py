@@ -54,7 +54,7 @@ def my_profile(request):
             uploaded_photo.seek(0)
             personal_info.student_photo = base64.b64encode(uploaded_photo.read()).decode("ascii")
             personal_info.student_photo_type = uploaded_photo.content_type or "image/jpeg"
-            personal_info.save(update_fields=["student_photo", "student_photo_type", "updated_at"])
+            personal_info.save(update_fields=["student_photo", "student_photo_type"])
             return redirect("accounts:my_profile")
         photo_error = error_message
     

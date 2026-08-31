@@ -1,43 +1,29 @@
 from django.contrib import admin
+from django.utils.html import format_html
 
-from documents.models import Document
-
-from .models import Application, PersonalInfo, ContactAddress, AcademicInfo, GuardianInfo, AdditionalInfo
-
-
-class DocumentInline(admin.TabularInline):
-    model = Document
-    extra = 0
+from .models import Application, PersonalInfo, ContactAddress, AcademicInfo
 
 
 class PersonalInfoInline(admin.TabularInline):
     model = PersonalInfo
     extra = 0
-    fields = ("status", "first_name", "last_name", "cnic_or_bform", "gender")
+    max_num = 1
+    fields = ("status", "full_name", "father_name", "cnic", "gender")
 
 
 class ContactAddressInline(admin.TabularInline):
     model = ContactAddress
     extra = 0
-    fields = ("status", "phone", "city", "province")
+    max_num = 1
+    fields = ("status", "permanent_phone", "permanent_city", "permanent_district")
 
 
 class AcademicInfoInline(admin.TabularInline):
     model = AcademicInfo
     extra = 0
-    fields = ("status", "matric_board", "intermediate_board")
+    max_num = 1
+    fields = ("status", "degree_certificate", "board_university", "passing_year")
 
-
-class GuardianInfoInline(admin.TabularInline):
-    model = GuardianInfo
-    extra = 0
-    fields = ("status", "guardian_name", "guardian_phone")
-
-
-class AdditionalInfoInline(admin.TabularInline):
-    model = AdditionalInfo
-    extra = 0
-    fields = ("status", "hostel_required", "scholarship_required", "disability_status")
 
 
 @admin.register(Application)
@@ -46,7 +32,7 @@ class ApplicationAdmin(admin.ModelAdmin):
     list_filter = ("status",)
     search_fields = ("applicant__username", "applicant__first_name", "applicant__last_name")
     readonly_fields = ("progress_percent", "sections_completed_count", "created_at", "updated_at")
-    inlines = [PersonalInfoInline, ContactAddressInline, AcademicInfoInline, GuardianInfoInline, AdditionalInfoInline, DocumentInline]
+    inlines = [PersonalInfoInline, ContactAddressInline, AcademicInfoInline]
     fieldsets = (
         ("Status", {"fields": ("applicant", "status", "declaration_accepted")}),
         ("Progress", {"fields": ("progress_percent", "sections_completed_count")}),
@@ -56,81 +42,106 @@ class ApplicationAdmin(admin.ModelAdmin):
 
 @admin.register(PersonalInfo)
 class PersonalInfoAdmin(admin.ModelAdmin):
-    list_display = ("application", "status", "full_name", "cnic_or_bform")
-    list_filter = ("status",)
-    search_fields = ("application__applicant__username", "first_name", "last_name", "cnic_or_bform")
+    list_display = ("application", "status", "full_name", "cnic", "nationality")
+    list_filter = ("status", "gender", "nationality", "religion", "domicile_province")
+    search_fields = (
+        "application__applicant__username",
+        "full_name",
+        "father_name",
+        "cnic",
+        "passport_no",
+    )
+    readonly_fields = ("student_photo_preview",)
     fieldsets = (
         ("Status", {"fields": ("application", "status")}),
-        ("Personal Information", {
-            "fields": ("first_name", "last_name", "father_name", "mother_name", "cnic_or_bform",
-                       "date_of_birth", "gender", "religion", "nationality", "blood_group", "marital_status"),
+        ("Photo", {"fields": ("student_photo_preview", "student_photo_type")}),
+        ("Personal Details", {
+            "fields": (
+                "full_name",
+                "father_name",
+                "guardian_name",
+                "guardian_contact_no",
+                "cell_no",
+                "date_of_birth",
+                "gender",
+                "religion",
+                "nationality",
+            ),
         }),
-        ("Photo", {"fields": ("student_photo_type",)}),
-        ("Timestamps", {"fields": ("created_at", "updated_at")}),
+        ("Identification", {"fields": ("cnic", "passport_no")}),
+        ("Domicile", {"fields": ("domicile_province", "domicile_district")}),
+        ("Additional", {"fields": ("disability_status",)}),
     )
+
+    def student_photo_preview(self, obj):
+        if not obj.student_photo:
+            return "—"
+        return format_html(
+            '<img src="data:{};base64,{}" style="max-height:150px;" />',
+            obj.student_photo_type or "image/jpeg",
+            obj.student_photo,
+        )
+
+    student_photo_preview.short_description = "Photo Preview"
 
 
 @admin.register(ContactAddress)
 class ContactAddressAdmin(admin.ModelAdmin):
-    list_display = ("application", "status", "phone", "city", "province")
-    list_filter = ("status", "province")
-    search_fields = ("application__applicant__username", "phone", "city")
+    list_display = ("application", "status", "permanent_city", "permanent_phone", "mailing_same_as_permanent")
+    list_filter = ("status", "permanent_district")
+    search_fields = (
+        "application__applicant__username",
+        "permanent_city",
+        "permanent_phone",
+        "mailing_phone",
+    )
     fieldsets = (
         ("Status", {"fields": ("application", "status")}),
-        ("Contact", {"fields": ("phone", "alternate_phone")}),
-        ("Present Address", {"fields": ("present_address", "city", "district", "province", "postal_code")}),
-        ("Permanent Address", {"fields": ("permanent_address",)}),
-        ("Domicile", {"fields": ("domicile_province", "domicile_district")}),
-        ("Timestamps", {"fields": ("created_at", "updated_at")}),
+        ("Permanent Address", {
+            "fields": (
+                "permanent_house_street_no",
+                "permanent_mohalla_tehsil",
+                "permanent_district",
+                "permanent_city",
+                "permanent_phone",
+                "permanent_courier_available",
+            ),
+        }),
+        ("Mailing Address", {
+            "fields": (
+                "mailing_same_as_permanent",
+                "mailing_house_street_no",
+                "mailing_mohalla_tehsil",
+                "mailing_district",
+                "mailing_city",
+                "mailing_phone",
+                "mailing_courier_available",
+            ),
+        }),
     )
 
 
 @admin.register(AcademicInfo)
 class AcademicInfoAdmin(admin.ModelAdmin):
-    list_display = ("application", "status", "matric_board", "intermediate_board")
-    list_filter = ("status",)
-    search_fields = ("application__applicant__username",)
-    fieldsets = (
-        ("Status", {"fields": ("application", "status")}),
-        ("Matric", {
-            "fields": ("matric_board", "matric_year", "matric_marks", "matric_total_marks", "matric_grade"),
-        }),
-        ("Intermediate", {
-            "fields": ("intermediate_board", "intermediate_group", "intermediate_year",
-                       "intermediate_marks", "intermediate_total_marks", "intermediate_grade", "intermediate_result"),
-        }),
-        ("Additional", {"fields": ("entry_test_score", "degree_program")}),
-        ("Timestamps", {"fields": ("created_at", "updated_at")}),
+    list_display = ("application", "status", "degree_certificate", "board_university", "passing_year", "result_declared")
+    list_filter = ("status", "degree_certificate", "study_group", "result_declared")
+    search_fields = (
+        "application__applicant__username",
+        "board_university",
+        "institute_name",
+        "degree_title",
     )
-
-
-@admin.register(GuardianInfo)
-class GuardianInfoAdmin(admin.ModelAdmin):
-    list_display = ("application", "status", "guardian_name", "guardian_phone")
-    list_filter = ("status",)
-    search_fields = ("application__applicant__username", "guardian_name", "guardian_phone")
     fieldsets = (
         ("Status", {"fields": ("application", "status")}),
-        ("Guardian", {
-            "fields": ("guardian_name", "guardian_relationship", "guardian_cnic", "guardian_occupation",
-                       "guardian_phone", "guardian_email", "guardian_address", "guardian_income"),
+        ("Qualification", {
+            "fields": (
+                "degree_certificate",
+                "board_university",
+                "degree_title",
+                "institute_name",
+                "study_group",
+                "country_studied",
+            ),
         }),
-        ("Emergency Contact", {
-            "fields": ("emergency_contact_name", "emergency_contact_relationship", "emergency_contact_number"),
-        }),
-        ("Timestamps", {"fields": ("created_at", "updated_at")}),
-    )
-
-
-@admin.register(AdditionalInfo)
-class AdditionalInfoAdmin(admin.ModelAdmin):
-    list_display = ("application", "status", "hostel_required", "scholarship_required", "disability_status")
-    list_filter = ("status", "hostel_required", "scholarship_required", "disability_status")
-    search_fields = ("application__applicant__username",)
-    fieldsets = (
-        ("Status", {"fields": ("application", "status")}),
-        ("Preferences", {
-            "fields": ("hostel_required", "scholarship_required", "disability_status"),
-        }),
-        ("Timestamps", {"fields": ("created_at", "updated_at")}),
+        ("Result", {"fields": ("obtained_marks", "total_marks", "passing_year", "result_declared")}),
     )

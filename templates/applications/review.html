@@ -1,43 +1,92 @@
 {% extends "base.html" %}
-{% block title %}Review Application{% endblock %}{% block page_title %}Review Application{% endblock %}
+{% block title %}Review Application{% endblock %}
+{% block page_title %}Review Application{% endblock %}
 {% block content %}
 <div class="page-intro">
     <div>
         <h2>Review your application</h2>
         <p>Confirm each section before you submit it to Admissions.</p>
-    </div><span class="status-badge status--{{ application.status|cut:'_' }}">{{ application.get_status_display}}</span>
+    </div>
+    <span class="status-badge status--{{ application.status|cut:'_' }}">{{ application.get_status_display }}</span>
 </div>
 <div class="grid grid-2">
     <section class="card card-pad">
         <div class="section-title">Application sections</div>
-        <p class="section-sub">Update any section that is incomplete before submission.</p>
+        <p class="section-sub">Update any section that isn't marked complete before submission.</p>
         <div class="summary-list">
-            <div class="summary-row"><span class="summary-label">Personal information</span><a class="summary-value"
-                    href="{% url 'step_personal_information' %}">Review</a></div>
-            <div class="summary-row"><span class="summary-label">Address &amp; contact</span><a class="summary-value"
-                    href="{% url 'step_contact_address' %}">Review</a></div>
-            <div class="summary-row"><span class="summary-label">Guardian information</span><a class="summary-value"
-                    href="{% url 'step_guardian_information' %}">Review</a></div>
-            <div class="summary-row"><span class="summary-label">Previous education</span><a class="summary-value"
-                    href="{% url 'step_academic_information' %}">Review</a></div>
-            <div class="summary-row"><span class="summary-label">Additional Info</span><a class="summary-value"
-                    href="{% url 'step_additional_information' %}">Review</a></div>
-            <div class="summary-row"><span class="summary-label">Documents</span><a class="summary-value"
-                    href="{% url 'documents' %}">Review</a></div>
+            <div class="summary-row">
+                <span class="summary-label">Personal information</span>
+                <span class="status-badge status-badge--sm status--{{ application.personal_info_status|cut:'_' }}">{{ application.personal_info_status|cut:'_'|title }}</span>
+                <a class="summary-value" href="{% url 'step_personal_information' %}">Review</a>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Address &amp; contact</span>
+                <span class="status-badge status-badge--sm status--{{ application.contact_address_status|cut:'_' }}">{{ application.contact_address_status|cut:'_'|title }}</span>
+                <a class="summary-value" href="{% url 'step_contact_address' %}">Review</a>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Previous education</span>
+                <span class="status-badge status-badge--sm status--{{ application.academic_info_status|cut:'_' }}">{{ application.academic_info_status|cut:'_'|title }}</span>
+                <a class="summary-value" href="{% url 'step_academic_information' %}">Review</a>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Program preferences</span>
+                <span class="status-badge status-badge--sm status--{{ application.program_preference_status|cut:'_' }}">{{ application.program_preference_status|cut:'_'|title }}</span>
+                <a class="summary-value" href="{% url 'step_program_preference' %}">Review</a>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Admission test</span>
+                <span class="status-badge status-badge--sm status--{{ application.admission_test_status|cut:'_' }}">{{ application.admission_test_status|cut:'_'|title }}</span>
+                <a class="summary-value" href="{% url 'step_admission_test' %}">Review</a>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Admission scheme</span>
+                <span class="status-badge status-badge--sm status--{{ application.admission_scheme_status|cut:'_' }}">{{ application.admission_scheme_status|cut:'_'|title }}</span>
+                <a class="summary-value" href="{% url 'step_admission_scheme' %}">Review</a>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Current employment</span>
+                <span class="status-badge status-badge--sm status--{{ application.employment_status|cut:'_' }}">{{ application.employment_status|cut:'_'|title }}</span>
+                <a class="summary-value" href="{% url 'step_employment' %}">Review</a>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Documents</span>
+                <span class="status-badge status-badge--sm status--{{ application.documents_status|cut:'_' }}">{{ application.documents_status|cut:'_'|title }}</span>
+                <a class="summary-value" href="{% url 'documents' %}">Review</a>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Declaration</span>
+                <span class="status-badge status-badge--sm {% if application.declaration_accepted %}status--completed{% else %}status--notstarted{% endif %}">{% if application.declaration_accepted %}Accepted{% else %}Not accepted{% endif %}</span>
+                <a class="summary-value" href="{% url 'declaration' %}">Review</a>
+            </div>
         </div>
     </section>
     <section class="card card-pad">
         <div class="section-title">Ready to submit?</div>
-        <p class="section-sub">Once submitted, your application is sent for review and cannot be edited unless
-            Admissions requests changes.</p>{% if application.is_ready_for_submission %}<form method="post"
-            action="{% url 'submit_application' %}">{% csrf_token %}<button class="btn btn-primary" type="submit">Submit
-                application</button></form>{% else %}<div class="notice">
+        <p class="section-sub">Once submitted, your application is sent for review and cannot be edited unless Admissions requests changes.</p>
+        {% if application.is_ready_for_submission and application.declaration_accepted %}
+        <form method="post" action="{% url 'submit_application' %}">
+            {% csrf_token %}
+            <button class="btn btn-primary" type="submit">Submit application</button>
+        </form>
+        {% elif not application.is_ready_for_submission %}
+        <div class="notice">
             <div class="notice-icon notice-icon--warn">!</div>
             <div>
                 <div class="notice-title">Complete all required sections</div>
-                <div class="notice-meta">Submission unlocks once every section is complete.</div>
+                <div class="notice-meta">Submission unlocks once every section above is complete.</div>
             </div>
-        </div>{% endif %}
+        </div>
+        {% else %}
+        <div class="notice">
+            <div class="notice-icon notice-icon--warn">!</div>
+            <div>
+                <div class="notice-title">Accept the declaration</div>
+                <div class="notice-meta">You must accept the declaration before you can submit.</div>
+            </div>
+        </div>
+        <a class="btn btn-primary" href="{% url 'declaration' %}">Go to declaration</a>
+        {% endif %}
     </section>
 </div>
 {% endblock %}

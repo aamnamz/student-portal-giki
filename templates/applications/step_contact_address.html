@@ -1,38 +1,214 @@
 {% extends "base.html" %}
-{% block title %}Address & Contact{% endblock %}{% block page_title %}Address & Contact{% endblock %}
+
+{% block title %}Address & Contact{% endblock %}
+{% block page_title %}Address & Contact{% endblock %}
+
 {% block content %}
+
 <div class="page-intro">
     <div>
         <h2>Address &amp; contact</h2>
-        <p>Use contact information where we can reliably reach you.</p>
+        <p>Provide your permanent and mailing address information.</p>
     </div>
 </div>
-<form class="card form-card">
+
+<form method="post" class="card form-card">
+    {% csrf_token %}
+
     <div class="form-section">
-        <h3>Contact details</h3>
+        <h3>Permanent Address</h3>
+
         <div class="field-grid">
-            <div class="field"><label>Phone number</label>
+
+            <div class="field field--full">
+                <label for="{{ form.permanent_house_street_no.id_for_label }}">
+                    House No. &amp; Street No.
+                </label>
+                {{ form.permanent_house_street_no }}
+                {% if form.permanent_house_street_no.errors %}
+                    <div class="field-error">
+                        {{ form.permanent_house_street_no.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="field">
+                <label for="{{ form.permanent_mohalla_tehsil.id_for_label }}">
+                    Mohalla / Village / Tehsil
+                </label>
+                {{ form.permanent_mohalla_tehsil }}
+                {% if form.permanent_mohalla_tehsil.errors %}
+                    <div class="field-error">
+                        {{ form.permanent_mohalla_tehsil.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="field">
+                <label for="{{ form.permanent_district.id_for_label }}">
+                    District
+                </label>
+                {{ form.permanent_district }}
+                {% if form.permanent_district.errors %}
+                    <div class="field-error">
+                        {{ form.permanent_district.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="field">
+                <label for="{{ form.permanent_city.id_for_label }}">
+                    City
+                </label>
+                {{ form.permanent_city }}
+                {% if form.permanent_city.errors %}
+                    <div class="field-error">
+                        {{ form.permanent_city.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="field">
+                <label for="{{ form.permanent_phone.id_for_label }}">
+                    Phone Number
+                </label>
+
                 <div class="input-group">
                     <span class="input-group-text">+</span>
-                    <input value="{{ application.phone }}" placeholder="923XXXXXXXXX" inputmode="numeric" pattern="92[0-9]{10}" maxlength="12">
+                    {{ form.permanent_phone }}
+                </div>
+
+                {% if form.permanent_phone.errors %}
+                    <div class="field-error">
+                        {{ form.permanent_phone.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="field">
+                <label for="{{ form.permanent_courier_available.id_for_label }}">
+                    Courier Available
+                </label>
+                <div class="checkbox-field">
+                    {{ form.permanent_courier_available }}
+                    <span>Yes, courier service is available</span>
                 </div>
             </div>
-            <div class="field field--full">
-                <label>Permanent address</label>
-                <textarea>{{ application.permanent_address }}</textarea>
-            </div>
-            <div class="field field--full">
-                <label>Present address</label>
-                <textarea>{{ application.present_address }}</textarea>
-            </div>
-            <div class="field">
-                <label>City</label><input value="{{ application.city }}">
-            </div>
-            <div class="field"><label>Province</label><input value="{{ application.province }}"></div>
-            <div class="field"><label>Postal code</label><input value="{{ application.postal_code }}"></div>
+
         </div>
     </div>
-    <div class="form-actions"><a class="btn btn-outline" href="{% url 'step_personal_information' %}">Back</a><a
-            class="btn btn-primary" href="{% url 'step_guardian_information' %}">Save &amp; continue</a></div>
+
+
+    <div class="form-section">
+
+        <h3>Mailing Address</h3>
+
+        <div class="field field--full">
+            <div class="checkbox-field">
+                {{ form.mailing_same_as_permanent }}
+                <label for="{{ form.mailing_same_as_permanent.id_for_label }}">
+                    Mailing address is same as permanent address
+                </label>
+            </div>
+        </div>
+
+        <div id="mailing-address-fields">
+
+            <div class="field-grid">
+
+                <div class="field field--full">
+                    <label for="{{ form.mailing_house_street_no.id_for_label }}">
+                        House No. &amp; Street No.
+                    </label>
+                    {{ form.mailing_house_street_no }}
+                    {% if form.mailing_house_street_no.errors %}
+                        <div class="field-error">
+                            {{ form.mailing_house_street_no.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="field">
+                    <label for="{{ form.mailing_mohalla_tehsil.id_for_label }}">
+                        Mohalla / Village / Tehsil
+                    </label>
+                    {{ form.mailing_mohalla_tehsil }}
+                    {% if form.mailing_mohalla_tehsil.errors %}
+                        <div class="field-error">
+                            {{ form.mailing_mohalla_tehsil.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="field">
+                    <label for="{{ form.mailing_district.id_for_label }}">
+                        District
+                    </label>
+                    {{ form.mailing_district }}
+                    {% if form.mailing_district.errors %}
+                        <div class="field-error">
+                            {{ form.mailing_district.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="field">
+                    <label for="{{ form.mailing_city.id_for_label }}">
+                        City
+                    </label>
+                    {{ form.mailing_city }}
+                    {% if form.mailing_city.errors %}
+                        <div class="field-error">
+                            {{ form.mailing_city.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="field">
+                    <label for="{{ form.mailing_phone.id_for_label }}">
+                        Phone Number
+                    </label>
+
+                    <div class="input-group">
+                        <span class="input-group-text">+</span>
+                        {{ form.mailing_phone }}
+                    </div>
+
+                    {% if form.mailing_phone.errors %}
+                        <div class="field-error">
+                            {{ form.mailing_phone.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="field">
+                    <label for="{{ form.mailing_courier_available.id_for_label }}">
+                        Courier Available
+                    </label>
+                    <div class="checkbox-field">
+                        {{ form.mailing_courier_available }}
+                        <span>Yes, courier service is available</span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="form-actions">
+        <a class="btn btn-outline"
+           href="{% url 'step_personal_information' %}">
+            Back
+        </a>
+
+        <button type="submit" class="btn btn-primary">
+            Save &amp; continue
+        </button>
+    </div>
+
 </form>
+
 {% endblock %}
