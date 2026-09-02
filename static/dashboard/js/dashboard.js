@@ -16,6 +16,14 @@ document.addEventListener('DOMContentLoaded', function () {
   var toggle = document.getElementById('sidebarToggle');
   var scrim = document.getElementById('sidebarScrim');
   var mobileQuery = window.matchMedia('(max-width: 860px)');
+  var COLLAPSE_KEY = 'giki_sidebar_collapsed';
+
+  function getSavedCollapsed() {
+    try { return localStorage.getItem(COLLAPSE_KEY) === '1'; } catch (e) { return false; }
+  }
+  function saveCollapsed(collapsed) {
+    try { localStorage.setItem(COLLAPSE_KEY, collapsed ? '1' : '0'); } catch (e) {}
+  }
 
   // Mobile: slide-in / offcanvas sidebar
   function setNavOpen(open) {
@@ -25,12 +33,29 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   function closeNav() { setNavOpen(false); }
 
-  // Desktop/tablet: collapse sidebar to icon-only rail
-  function setSidebarCollapsed(collapsed) {
+  // Desktop/tablet: collapse sidebar to icon-only rail.
+  // `persist` is only true when the user explicitly clicks the toggle —
+  // restoring the saved state on load/resize must never overwrite it.
+  function setSidebarCollapsed(collapsed, persist) {
     if (!portal) return;
     portal.classList.toggle('sidebar-collapsed', collapsed);
     if (toggle) toggle.setAttribute('aria-expanded', String(!collapsed));
+    if (persist) saveCollapsed(collapsed);
   }
+
+  // Restore the user's last choice on every page load (desktop/tablet only —
+  // mobile always shows the full-width offcanvas sidebar regardless of this).
+  if (!mobileQuery.matches) {
+    setSidebarCollapsed(getSavedCollapsed(), false);
+  }
+
+  // Browser back/forward can restore a page from bfcache without re-running
+  // this script from scratch — re-apply the saved state in that case too.
+  window.addEventListener('pageshow', function (event) {
+    if (event.persisted && !mobileQuery.matches) {
+      setSidebarCollapsed(getSavedCollapsed(), false);
+    }
+  });
 
   if (toggle) {
     toggle.addEventListener('click', function (e) {
@@ -38,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (mobileQuery.matches) {
         setNavOpen(!portal.classList.contains('nav-open'));
       } else {
-        setSidebarCollapsed(!portal.classList.contains('sidebar-collapsed'));
+        setSidebarCollapsed(!portal.classList.contains('sidebar-collapsed'), true);
       }
     });
   }
@@ -51,13 +76,18 @@ document.addEventListener('DOMContentLoaded', function () {
     if (event.key === 'Escape') closeNav();
   });
 
-  // Reset both sidebar states when crossing the mobile/desktop breakpoint,
-  // so resizing the window never leaves the sidebar in a stuck state.
+  // Crossing the mobile/desktop breakpoint only affects layout, never the
+  // user's saved collapse preference: close the offcanvas menu on mobile,
+  // and re-apply whatever was last saved when back on desktop/tablet.
   function handleBreakpointChange() {
     if (!portal) return;
     portal.classList.remove('nav-open');
-    portal.classList.remove('sidebar-collapsed');
     if (toggle) toggle.setAttribute('aria-expanded', 'false');
+    if (mobileQuery.matches) {
+      portal.classList.remove('sidebar-collapsed');
+    } else {
+      setSidebarCollapsed(getSavedCollapsed(), false);
+    }
   }
   if (typeof mobileQuery.addEventListener === 'function') {
     mobileQuery.addEventListener('change', handleBreakpointChange);
@@ -73,6 +103,36 @@ document.addEventListener('DOMContentLoaded', function () {
       applicationToggle.setAttribute('aria-expanded', String(isOpen));
     });
   }
+
+  // Icon-rail tooltips: rendered as a single fixed-position element appended
+  // to <body>, positioned via JS from each item's bounding box. This keeps
+  // the tooltip completely outside the sidebar's own box, so it can never
+  // widen or horizontally scroll the collapsed rail the way a CSS ::after
+  // positioned inside the scrollable nav would.
+  var railTooltip = document.createElement('div');
+  railTooltip.className = 'rail-tooltip';
+  document.body.appendChild(railTooltip);
+
+  function hideRailTooltip() {
+    railTooltip.classList.remove('visible');
+  }
+
+  document.querySelectorAll('.nav-item[data-tooltip], .subnav-item[data-tooltip]').forEach(function (item) {
+    item.addEventListener('mouseenter', function () {
+      if (!portal || !portal.classList.contains('sidebar-collapsed') || mobileQuery.matches) return;
+      var rect = item.getBoundingClientRect();
+      railTooltip.textContent = item.getAttribute('data-tooltip');
+      railTooltip.style.left = (rect.right + 10) + 'px';
+      railTooltip.style.top = (rect.top + rect.height / 2) + 'px';
+      railTooltip.classList.add('visible');
+    });
+    item.addEventListener('mouseleave', hideRailTooltip);
+    item.addEventListener('blur', hideRailTooltip);
+  });
+  // Any of these mean the tooltip's position is no longer valid — drop it.
+  document.addEventListener('scroll', hideRailTooltip, true);
+  window.addEventListener('resize', hideRailTooltip);
+  if (toggle) toggle.addEventListener('click', hideRailTooltip);
 
   // Profile dropdown
   var trigger = document.getElementById('profileTrigger');

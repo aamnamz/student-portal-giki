@@ -18,9 +18,12 @@ from .forms import (
     ContactAddressForm,
     CurrentEmploymentForm,
     DeclarationForm,
-    FormSubmissionForm,
+    ApplicationFormForm,
     PersonalInformationForm,
+    ProcessingFeeForm,
     ProgramPreferenceForm,
+    RefereeInformationForm,
+    TestCenterForm,
 )
 from .models import (
     AcademicInfo,
@@ -29,9 +32,12 @@ from .models import (
     Application,
     ContactAddress,
     CurrentEmployment,
-    FormSubmission,
+    ApplicationForm,
     PersonalInfo,
+    ProcessingFee,
     ProgramPreference,
+    RefereeInformation,
+    TestCenter,
 )
 
 
@@ -57,6 +63,31 @@ STATUS_TO_STEP_INDEX = {
     "rejected": 5,
 }
 
+# ---------------------------------------------------------------------------
+# Continue Application — redirects to the first unfilled Section I step
+# ---------------------------------------------------------------------------
+STEP_ROUTE_ORDER = [
+    ("personal_info_status", "step_personal_information"),
+    ("contact_address_status", "step_contact_address"),
+    ("academic_info_status", "step_academic_information"),
+    ("program_preference_status", "step_program_preference"),
+    ("admission_test_status", "step_admission_test"),
+    ("admission_scheme_status", "step_admission_scheme"),
+    ("employment_status", "step_employment"),
+    ("form_submission_status", "form_submission"),
+]
+
+
+@login_required
+def continue_application(request):
+    application = _get_or_create_application(request.user)
+
+    for status_field, route_name in STEP_ROUTE_ORDER:
+        if getattr(application, status_field) != "completed":
+            return redirect(route_name)
+
+    # All Section I steps complete — go to declaration/review.
+    return redirect("declaration")
 
 def _build_timeline(application):
     current_index = STATUS_TO_STEP_INDEX.get(application.status, 0)
@@ -135,25 +166,6 @@ def _encode_file(uploaded_file):
 
 
 # ---------------------------------------------------------------------------
-# Application overview
-# ---------------------------------------------------------------------------
-@login_required
-def my_application(request):
-    application = _get_or_create_application(request.user)
-
-    return render(
-        request,
-        "applications/overview.html",
-        {
-            "active_nav": "application",
-            "checklist": application.checklist,
-            "progress_percent": application.progress_percent,
-            "is_ready_for_submission": application.is_ready_for_submission,
-        },
-    )
-
-
-# ---------------------------------------------------------------------------
 # Personal Information — Step 1
 # ---------------------------------------------------------------------------
 @login_required
@@ -172,7 +184,6 @@ def step_personal_information(request):
         "Upload a passport-size student photo. JPG or PNG files are accepted.",
     )
 
-
 def _step_personal(
     request,
     application,
@@ -182,7 +193,7 @@ def _step_personal(
     title,
     guidance,
 ):
-    """Handler for PersonalInfo section with photo upload."""
+    locked = application.section_i_locked
 
     form = form_class(
         request.POST or None,
@@ -190,47 +201,46 @@ def _step_personal(
         instance=section_obj,
     )
 
-    if request.method == "POST" and form.is_valid():
+    if not locked and request.method == "POST":
         uploaded_photo = request.FILES.get("student_photo")
 
         if uploaded_photo:
             uploaded_photo.seek(0)
-
-            is_valid, error_message = validate_passport_image(
-                uploaded_photo
-            )
+            is_valid, error_message = validate_passport_image(uploaded_photo)
 
             if not is_valid:
                 form.add_error("student_photo", error_message)
+            else:
+                encoded, content_type = _compress_image(uploaded_photo)
+                section_obj.student_photo = encoded
+                section_obj.student_photo_type = content_type
 
-                return render(
-                    request,
-                    "applications/step_form.html",
-                    {
-                        "active_nav": "application",
-                        "application": application,
-                        "form": form,
-                        "title": title,
-                        "guidance": guidance,
-                    },
-                )
+                # Remove the uploaded file from Django's ImageField
+                # validation because the actual stored value is base64.
+                form.fields["student_photo"].required = False
 
-            encoded, content_type = _compress_image(uploaded_photo)
+                if "student_photo" in form.files:
+                    form.files = form.files.copy()
+                    form.files.pop("student_photo", None)
 
-            updated = form.save(commit=False)
-            updated.student_photo = encoded
-            updated.student_photo_type = content_type
-
-        else:
+        if form.is_valid() and "student_photo" not in form.errors:
             updated = form.save(commit=False)
 
-        updated.status = "completed"
-        updated.save()
+            if uploaded_photo and is_valid:
+                updated.student_photo = section_obj.student_photo
+                updated.student_photo_type = section_obj.student_photo_type
 
-        application.updated_at = timezone.now()
-        application.save(update_fields=["updated_at"])
+            updated.status = "completed"
+            updated.save()
 
-        return redirect(next_route)
+            application.updated_at = timezone.now()
+            application.save(update_fields=["updated_at"])
+
+            return redirect(next_route)
+
+    if locked:
+        for field in form.fields.values():
+            field.disabled = True
 
     return render(
         request,
@@ -241,8 +251,14 @@ def _step_personal(
             "form": form,
             "title": title,
             "guidance": guidance,
+            "locked": locked,
+            "lock_message": (
+                "Your application has been submitted. Section I is now "
+                "read-only."
+            ),
         },
     )
+
 
 
 # ---------------------------------------------------------------------------
@@ -311,23 +327,14 @@ SECTION_MODEL_MAP = {
     "personal_info_status": (PersonalInfo, "personal_info"),
     "contact_address_status": (ContactAddress, "contact_address"),
     "academic_info_status": (AcademicInfo, "academic_info"),
-    "program_preference_status": (
-        ProgramPreference,
-        "program_preference",
-    ),
+    "program_preference_status": (ProgramPreference, "program_preference"),
     "admission_test_status": (AdmissionTest, "admission_test"),
-    "admission_scheme_status": (
-        AdmissionScheme,
-        "admission_scheme",
-    ),
-    "employment_status": (
-        CurrentEmployment,
-        "current_employment",
-    ),
-    "form_submission_status": (
-        FormSubmission,
-        "form_submission",
-    ),
+    "admission_scheme_status": (AdmissionScheme, "admission_scheme"),
+    "employment_status": (CurrentEmployment, "current_employment"),
+    "processing_fee_status": (ProcessingFee, "processing_fee"),
+    "referee_information_status": (RefereeInformation, "referee_information"),
+    "test_center_status": (TestCenter, "test_center"),
+    "application_form_status": (ApplicationForm, "application_form"),
 }
 
 
@@ -343,30 +350,38 @@ def _step(
     title,
     guidance,
 ):
-    """Generic handler for non-file form sections."""
+    application = section_obj.application
+    locked = application.section_i_locked
 
     form = form_class(
         request.POST or None,
         instance=section_obj,
     )
 
-    if request.method == "POST" and form.is_valid():
+    if not locked and request.method == "POST" and form.is_valid():
         updated = form.save(commit=False)
-
         updated.status = "completed"
         updated.save()
-
         return redirect(next_route)
+
+    if locked:
+        for field in form.fields.values():
+            field.disabled = True
 
     return render(
         request,
         "applications/step_form.html",
         {
             "active_nav": "application",
-            "application": section_obj.application,
+            "application": application,
             "form": form,
             "title": title,
             "guidance": guidance,
+            "locked": locked,
+            "lock_message": (
+                "Your application has been submitted. Section I is now "
+                "read-only."
+            ),
         },
     )
 
@@ -440,11 +455,9 @@ def step_program_preference(request):
 @login_required
 def step_admission_test(request):
     application = _get_or_create_application(request.user)
+    locked = application.section_i_locked
 
-    admission_test = _get_or_build(
-        AdmissionTest,
-        application,
-    )
+    admission_test = _get_or_build(AdmissionTest, application)
 
     title = "Admission Test"
     guidance = (
@@ -458,9 +471,8 @@ def step_admission_test(request):
         instance=admission_test,
     )
 
-    if request.method == "POST" and form.is_valid():
+    if not locked and request.method == "POST" and form.is_valid():
         uploaded_evidence = request.FILES.get("evidence_document")
-
         updated = form.save(commit=False)
 
         if uploaded_evidence:
@@ -476,6 +488,10 @@ def step_admission_test(request):
 
         return redirect("step_admission_scheme")
 
+    if locked:
+        for field in form.fields.values():
+            field.disabled = True
+
     return render(
         request,
         "applications/step_form.html",
@@ -485,6 +501,11 @@ def step_admission_test(request):
             "form": form,
             "title": title,
             "guidance": guidance,
+            "locked": locked,
+            "lock_message": (
+                "Your application has been submitted. Section I is now "
+                "read-only."
+            ),
         },
     )
 
@@ -529,30 +550,27 @@ def step_employment(request):
         current_employment,
         CurrentEmploymentForm,
         "employment_status",
-        "form_submission",
+        "application_form",   # back to the original Section I flow
         "Current Employment",
         "Tell us about your current employment, if any.",
     )
 
 
 # ---------------------------------------------------------------------------
-# Step 8 — Form Submission
+# Step 8 — Application Form
 # ---------------------------------------------------------------------------
 @login_required
-def form_submission(request):
+def application_form(request):
     application = _get_or_create_application(request.user)
+    locked = application.section_i_locked
 
-    form_submission_obj = _get_or_build(
-        FormSubmission,
-        application,
-    )
-
-    form = FormSubmissionForm(
+    application_form_obj = _get_or_build(ApplicationForm, application)
+    form = ApplicationFormForm(
         request.POST or None,
-        instance=form_submission_obj,
+        instance=application_form_obj,
     )
 
-    if request.method == "POST" and form.is_valid():
+    if not locked and request.method == "POST" and form.is_valid():
         updated = form.save(commit=False)
         updated.status = "completed"
         updated.save()
@@ -562,19 +580,157 @@ def form_submission(request):
 
         return redirect("declaration")
 
+    if locked:
+        for field in form.fields.values():
+            field.disabled = True
+
     return render(
         request,
-        "applications/form_submission.html",
+        "applications/application_form.html",
         {
             "active_nav": "application",
             "application": application,
             "form": form,
-            "checklist": application.checklist,
-            "progress_percent": application.progress_percent,
+            "checklist": application.checklist_section_i,
+            "progress_percent": int(
+                round(
+                    sum(
+                        getattr(application, k) == "completed"
+                        for k in application.SECTION_I_KEYS
+                    )
+                    / len(application.SECTION_I_KEYS)
+                    * 100
+                )
+            ),
             "is_ready_for_submission": application.is_ready_for_submission,
+            "locked": locked,
         },
     )
 
+# ---------------------------------------------------------------------------
+# Step 9 (Section II) — Processing Fee
+# ---------------------------------------------------------------------------
+@login_required
+def step_processing_fee(request):
+    application = _get_or_create_application(request.user)
+    processing_fee = _get_or_build(ProcessingFee, application)
+
+    form = ProcessingFeeForm(
+        request.POST or None,
+        request.FILES or None,
+        instance=processing_fee,
+    )
+
+    if request.method == "POST" and form.is_valid():
+        uploaded_proof = request.FILES.get("proof_of_payment")
+        updated = form.save(commit=False)
+
+        if uploaded_proof:
+            encoded, content_type = _encode_file(uploaded_proof)
+            updated.proof_of_payment = encoded
+            updated.proof_of_payment_type = content_type
+
+        updated.status = "completed"
+        updated.save()
+
+        application.updated_at = timezone.now()
+        application.save(update_fields=["updated_at"])
+
+        return redirect("application_status")
+
+    return render(
+        request,
+        "applications/step_form.html",
+        {
+            "active_nav": "application",
+            "application": application,
+            "form": form,
+            "title": "Processing Fee",
+            "guidance": (
+                "Enter your processing fee payment details and attach "
+                "proof of payment."
+            ),
+        },
+    )
+
+
+# ---------------------------------------------------------------------------
+# Step 10 (Section II) — References & LOR
+# ---------------------------------------------------------------------------
+@login_required
+def step_referee_information(request):
+    application = _get_or_create_application(request.user)
+    referee_information = _get_or_build(RefereeInformation, application)
+
+    form = RefereeInformationForm(
+        request.POST or None,
+        request.FILES or None,
+        instance=referee_information,
+    )
+
+    if request.method == "POST" and form.is_valid():
+        uploaded_letter = request.FILES.get("recommendation_letter")
+        updated = form.save(commit=False)
+
+        if uploaded_letter:
+            encoded, content_type = _encode_file(uploaded_letter)
+            updated.recommendation_letter = encoded
+            updated.recommendation_letter_type = content_type
+
+        updated.status = "completed"
+        updated.save()
+
+        application.updated_at = timezone.now()
+        application.save(update_fields=["updated_at"])
+
+        return redirect("application_status")
+
+    return render(
+        request,
+        "applications/step_form.html",
+        {
+            "active_nav": "application",
+            "application": application,
+            "form": form,
+            "title": "References & LOR",
+            "guidance": (
+                "Provide your referee's details and upload their signed "
+                "letter of recommendation."
+            ),
+        },
+    )
+
+
+# ---------------------------------------------------------------------------
+# Step 11 (Section III) — Test Center
+# ---------------------------------------------------------------------------
+@login_required
+def step_test_center(request):
+    application = _get_or_create_application(request.user)
+    test_center = _get_or_build(TestCenter, application)
+
+    form = TestCenterForm(
+        request.POST or None,
+        instance=test_center,
+    )
+
+    if request.method == "POST" and form.is_valid():
+        updated = form.save(commit=False)
+        updated.status = "completed"
+        updated.save()
+        return redirect("application_status")
+
+    return render(
+        request,
+        "applications/step_form.html",
+        {
+            "active_nav": "application",
+            "application": application,
+            "form": form,
+            "title": "Test Center",
+            "guidance": "Confirm your assigned test center details.",
+        },
+    )
 
 # ---------------------------------------------------------------------------
 # Declaration
@@ -582,16 +738,20 @@ def form_submission(request):
 @login_required
 def declaration(request):
     application = _get_or_create_application(request.user)
+    locked = application.section_i_locked
 
     form = DeclarationForm(
         request.POST or None,
         instance=application,
     )
 
-    if request.method == "POST" and form.is_valid():
+    if not locked and request.method == "POST" and form.is_valid():
         form.save()
-
         return redirect("review_application")
+
+    if locked:
+        for field in form.fields.values():
+            field.disabled = True
 
     return render(
         request,
@@ -604,6 +764,11 @@ def declaration(request):
             "guidance": (
                 "Please review and accept the declaration to "
                 "continue to your application review."
+            ),
+            "locked": locked,
+            "lock_message": (
+                "Your application has been submitted. Section I is now "
+                "read-only."
             ),
         },
     )
@@ -691,7 +856,7 @@ def reset_application(request):
             application=application
         ).update(status="not_started")
 
-        FormSubmission.objects.filter(
+        ApplicationForm.objects.filter(
             application=application
         ).update(status="not_started")
 
