@@ -8,7 +8,7 @@ from .models import (
     AdmissionTest,
     AdmissionScheme,
     CurrentEmployment,
-    FormSubmission,
+    ApplicationForm,
     ProcessingFee,
     RefereeInformation,
     TestCenter,
@@ -358,6 +358,12 @@ class AcademicInformationForm(StyledFormMixin, forms.ModelForm):
             ),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["degree_certificate"].choices = [
+            c for c in self.fields["degree_certificate"].choices if c[0]
+        ]
+
     def clean(self):
         cleaned_data = super().clean()
         obtained_marks = cleaned_data.get("obtained_marks")
@@ -382,7 +388,7 @@ class AcademicInformationForm(StyledFormMixin, forms.ModelForm):
 class ProgramPreferenceForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = ProgramPreference
-        fields = ["program_choice"]
+        fields = ["degree_level", "discipline"]
 
 
 # ---------------------------------------------------------------------------
@@ -424,6 +430,9 @@ class AdmissionTestForm(StyledFormMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["entry_test_option"].choices = [
+            c for c in self.fields["entry_test_option"].choices if c[0]
+        ]
         # These five are only required when entry_test_option is
         # "already_qualified" — enforced in clean(), not here.
         for field in [
@@ -554,11 +563,11 @@ class CurrentEmploymentForm(StyledFormMixin, forms.ModelForm):
 
 
 # ---------------------------------------------------------------------------
-# Section 8: Form Submission
+# Section 8: Application Form
 # ---------------------------------------------------------------------------
-class FormSubmissionForm(StyledFormMixin, forms.ModelForm):
+class ApplicationFormForm(StyledFormMixin, forms.ModelForm):
     class Meta:
-        model = FormSubmission
+        model = ApplicationForm
         fields = []
 
 # ---------------------------------------------------------------------------
@@ -647,8 +656,7 @@ class RefereeInformationForm(StyledFormMixin, forms.ModelForm):
 class TestCenterForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = TestCenter
-        fields = []
-
+        fields = ["preferred_test_center"]
 
 # ---------------------------------------------------------------------------
 # Declaration

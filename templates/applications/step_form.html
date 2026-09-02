@@ -9,6 +9,15 @@
     <p>{{ guidance }}</p>
   </div>
 </div>
+{% if locked %}
+<div class="notice notice--warn mb-3">
+    <div class="notice-icon notice-icon--warn">!</div>
+    <div>
+        <div class="notice-title">This section is locked</div>
+        <div class="notice-meta">{{ lock_message }}</div>
+    </div>
+</div>
+{% endif %}
 <form class="card form-card needs-validation {% if form.is_bound %}was-validated{% endif %}" method="post" enctype="multipart/form-data" novalidate>
   {% csrf_token %}
   {% if form.non_field_errors %}
@@ -75,6 +84,8 @@
             <div class="field-grid">
               <div class="field field--full">
         {% elif field.name == "permanent_house_street_no" %}
+          <div class="field field--full">
+        {% elif field.name == "entry_test_option" %}
           <div class="field field--full">
         {% elif field.name == "employer" %}
           <div class="field field--full conditional-group" id="employment-fields">
@@ -215,10 +226,10 @@
     {% endfor %}
   </div>
   <div class="form-actions">
-    <a class="btn btn-outline" href="{% url 'my_application' %}">
+    <a class="btn btn-outline" href="{% url 'continue_application' %}">
       Cancel
     </a>
-    <button class="btn btn-primary" type="submit">
+    <button class="btn btn-primary" type="submit" {% if locked %}disabled{% endif %}>
       Save &amp; Next
     </button>
   </div>
@@ -276,22 +287,30 @@ document
 (function () {
   const nationalitySelect =
     document.querySelector("[data-nationality-select]");
-  const fields =
-    document.querySelectorAll("[data-nationality-field]");
-  if (!nationalitySelect || !fields.length) {
+  const cnicField =
+    document.querySelector('[data-nationality-field="Pakistani"]');
+  const passportField =
+    document.querySelector('[data-nationality-field="Other"]');
+
+  if (!nationalitySelect || !cnicField || !passportField) {
     return;
   }
+
   function sync() {
-    const value = nationalitySelect.value;
-    fields.forEach((field) => {
-      const matches =
-        field.getAttribute("data-nationality-field") === value;
-      field.hidden = !matches;
-      const input = field.querySelector("input");
-      if (input) {
-        input.disabled = !matches;
-      }
-    });
+    const isPakistani =
+      nationalitySelect.value === "Pakistani";
+    cnicField.hidden = !isPakistani;
+    passportField.hidden = isPakistani;
+    const cnicInput =
+      cnicField.querySelector("input");
+    const passportInput =
+      passportField.querySelector("input");
+    if (cnicInput) {
+      cnicInput.disabled = !isPakistani;
+    }
+    if (passportInput) {
+      passportInput.disabled = isPakistani;
+    }
   }
   nationalitySelect.addEventListener("change", sync);
   sync();

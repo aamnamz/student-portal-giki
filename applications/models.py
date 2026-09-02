@@ -82,8 +82,193 @@ SECTION_STATUS_CHOICES = [
 ]
 
 NATIONALITY_CHOICES = [
+    ("Afghan", "Afghan"),
+    ("Albanian", "Albanian"),
+    ("Algerian", "Algerian"),
+    ("American", "American"),
+    ("Andorran", "Andorran"),
+    ("Angolan", "Angolan"),
+    ("Antiguan and Barbudan", "Antiguan and Barbudan"),
+    ("Argentine", "Argentine"),
+    ("Armenian", "Armenian"),
+    ("Australian", "Australian"),
+    ("Austrian", "Austrian"),
+    ("Azerbaijani", "Azerbaijani"),
+    ("Bahamian", "Bahamian"),
+    ("Bahraini", "Bahraini"),
+    ("Bangladeshi", "Bangladeshi"),
+    ("Barbadian", "Barbadian"),
+    ("Belarusian", "Belarusian"),
+    ("Belgian", "Belgian"),
+    ("Belizean", "Belizean"),
+    ("Beninese", "Beninese"),
+    ("Bhutanese", "Bhutanese"),
+    ("Bolivian", "Bolivian"),
+    ("Bosnian", "Bosnian"),
+    ("Botswanan", "Botswanan"),
+    ("Brazilian", "Brazilian"),
+    ("Bruneian", "Bruneian"),
+    ("Bulgarian", "Bulgarian"),
+    ("Burkinabe", "Burkinabe"),
+    ("Burundian", "Burundian"),
+    ("Cabo Verdean", "Cabo Verdean"),
+    ("Cambodian", "Cambodian"),
+    ("Cameroonian", "Cameroonian"),
+    ("Canadian", "Canadian"),
+    ("Central African", "Central African"),
+    ("Chadian", "Chadian"),
+    ("Chilean", "Chilean"),
+    ("Chinese", "Chinese"),
+    ("Colombian", "Colombian"),
+    ("Comorian", "Comorian"),
+    ("Congolese", "Congolese"),
+    ("Costa Rican", "Costa Rican"),
+    ("Croatian", "Croatian"),
+    ("Cuban", "Cuban"),
+    ("Cypriot", "Cypriot"),
+    ("Czech", "Czech"),
+    ("Danish", "Danish"),
+    ("Djiboutian", "Djiboutian"),
+    ("Dominican", "Dominican"),
+    ("Dutch", "Dutch"),
+    ("Ecuadorian", "Ecuadorian"),
+    ("Egyptian", "Egyptian"),
+    ("Emirati", "Emirati"),
+    ("Equatorial Guinean", "Equatorial Guinean"),
+    ("Eritrean", "Eritrean"),
+    ("Estonian", "Estonian"),
+    ("Eswatini", "Eswatini"),
+    ("Ethiopian", "Ethiopian"),
+    ("Fijian", "Fijian"),
+    ("Finnish", "Finnish"),
+    ("French", "French"),
+    ("Gabonese", "Gabonese"),
+    ("Gambian", "Gambian"),
+    ("Georgian", "Georgian"),
+    ("German", "German"),
+    ("Ghanaian", "Ghanaian"),
+    ("Greek", "Greek"),
+    ("Grenadian", "Grenadian"),
+    ("Guatemalan", "Guatemalan"),
+    ("Guinean", "Guinean"),
+    ("Guyanese", "Guyanese"),
+    ("Haitian", "Haitian"),
+    ("Honduran", "Honduran"),
+    ("Hungarian", "Hungarian"),
+    ("Icelandic", "Icelandic"),
+    ("Indian", "Indian"),
+    ("Indonesian", "Indonesian"),
+    ("Iranian", "Iranian"),
+    ("Iraqi", "Iraqi"),
+    ("Irish", "Irish"),
+    ("Italian", "Italian"),
+    ("Ivorian", "Ivorian"),
+    ("Jamaican", "Jamaican"),
+    ("Japanese", "Japanese"),
+    ("Jordanian", "Jordanian"),
+    ("Kazakhstani", "Kazakhstani"),
+    ("Kenyan", "Kenyan"),
+    ("Kiribati", "Kiribati"),
+    ("Kuwaiti", "Kuwaiti"),
+    ("Kyrgyzstani", "Kyrgyzstani"),
+    ("Laotian", "Laotian"),
+    ("Latvian", "Latvian"),
+    ("Lebanese", "Lebanese"),
+    ("Lesotho", "Lesotho"),
+    ("Liberian", "Liberian"),
+    ("Libyan", "Libyan"),
+    ("Liechtensteiner", "Liechtensteiner"),
+    ("Lithuanian", "Lithuanian"),
+    ("Luxembourgish", "Luxembourgish"),
+    ("Malagasy", "Malagasy"),
+    ("Malawian", "Malawian"),
+    ("Malaysian", "Malaysian"),
+    ("Maldivian", "Maldivian"),
+    ("Malian", "Malian"),
+    ("Maltese", "Maltese"),
+    ("Marshallese", "Marshallese"),
+    ("Mauritanian", "Mauritanian"),
+    ("Mauritian", "Mauritian"),
+    ("Mexican", "Mexican"),
+    ("Micronesian", "Micronesian"),
+    ("Moldovan", "Moldovan"),
+    ("Monegasque", "Monegasque"),
+    ("Mongolian", "Mongolian"),
+    ("Montenegrin", "Montenegrin"),
+    ("Moroccan", "Moroccan"),
+    ("Mozambican", "Mozambican"),
+    ("Myanmar", "Myanmar"),
+    ("Namibian", "Namibian"),
+    ("Nauruan", "Nauruan"),
+    ("Nepalese", "Nepalese"),
+    ("Dutch", "Dutch"),
+    ("New Zealander", "New Zealander"),
+    ("Nicaraguan", "Nicaraguan"),
+    ("Nigerian", "Nigerian"),
+    ("Nigerien", "Nigerien"),
+    ("North Korean", "North Korean"),
+    ("North Macedonian", "North Macedonian"),
+    ("Norwegian", "Norwegian"),
+    ("Omani", "Omani"),
     ("Pakistani", "Pakistani"),
-    ("Other", "Other"),
+    ("Palauan", "Palauan"),
+    ("Panamanian", "Panamanian"),
+    ("Papua New Guinean", "Papua New Guinean"),
+    ("Paraguayan", "Paraguayan"),
+    ("Peruvian", "Peruvian"),
+    ("Philippine", "Philippine"),
+    ("Polish", "Polish"),
+    ("Portuguese", "Portuguese"),
+    ("Qatari", "Qatari"),
+    ("Romanian", "Romanian"),
+    ("Russian", "Russian"),
+    ("Rwandan", "Rwandan"),
+    ("Saint Lucian", "Saint Lucian"),
+    ("Salvadoran", "Salvadoran"),
+    ("Samoan", "Samoan"),
+    ("San Marinese", "San Marinese"),
+    ("Saudi", "Saudi"),
+    ("Senegalese", "Senegalese"),
+    ("Serbian", "Serbian"),
+    ("Seychellois", "Seychellois"),
+    ("Sierra Leonean", "Sierra Leonean"),
+    ("Singaporean", "Singaporean"),
+    ("Slovak", "Slovak"),
+    ("Slovenian", "Slovenian"),
+    ("Solomon Islander", "Solomon Islander"),
+    ("Somali", "Somali"),
+    ("South African", "South African"),
+    ("South Korean", "South Korean"),
+    ("South Sudanese", "South Sudanese"),
+    ("Spanish", "Spanish"),
+    ("Sri Lankan", "Sri Lankan"),
+    ("Sudanese", "Sudanese"),
+    ("Surinamese", "Surinamese"),
+    ("Swedish", "Swedish"),
+    ("Swiss", "Swiss"),
+    ("Syrian", "Syrian"),
+    ("Taiwanese", "Taiwanese"),
+    ("Tajikistani", "Tajikistani"),
+    ("Tanzanian", "Tanzanian"),
+    ("Thai", "Thai"),
+    ("Timorese", "Timorese"),
+    ("Togolese", "Togolese"),
+    ("Tongan", "Tongan"),
+    ("Trinidadian and Tobagonian", "Trinidadian and Tobagonian"),
+    ("Tunisian", "Tunisian"),
+    ("Turkish", "Turkish"),
+    ("Turkmen", "Turkmen"),
+    ("Tuvaluan", "Tuvaluan"),
+    ("Ugandan", "Ugandan"),
+    ("Ukrainian", "Ukrainian"),
+    ("Uruguayan", "Uruguayan"),
+    ("Uzbekistani", "Uzbekistani"),
+    ("Vanuatuan", "Vanuatuan"),
+    ("Venezuelan", "Venezuelan"),
+    ("Vietnamese", "Vietnamese"),
+    ("Yemeni", "Yemeni"),
+    ("Zambian", "Zambian"),
+    ("Zimbabwean", "Zimbabwean"),
 ]
 
 RELIGION_CHOICES = [
@@ -120,7 +305,6 @@ DEGREE_CHOICES = [
     ("intermediate", "Intermediate / A-Level"),
     ("bachelor", "Bachelor's"),
     ("master", "Master's"),
-    ("other", "Other"),
 ]
 
 STUDY_GROUP_CHOICES = [
@@ -136,16 +320,25 @@ STUDY_GROUP_CHOICES = [
 # Placeholder list of offered programs. Replace with a real Program model /
 # DB-driven queryset once the institution's program catalogue is finalised;
 # kept as static choices for now so the field still can't be typed freely.
-PROGRAM_CHOICES = [
-    ("bs_computer_science", "BS Computer Science"),
-    ("bs_software_engineering", "BS Software Engineering"),
-    ("bs_electrical_engineering", "BS Electrical Engineering"),
-    ("bs_business_administration", "BS Business Administration"),
-    ("bs_accounting_finance", "BS Accounting & Finance"),
-    ("bs_english", "BS English"),
-    ("bs_psychology", "BS Psychology"),
-    ("md_medicine", "MBBS"),
-    ("other", "Other"),
+GRADUATE_DEGREE_LEVEL_CHOICES = [
+    ("ms", "MS"),
+    ("phd", "PhD"),
+]
+
+GRADUATE_DISCIPLINE_CHOICES = [
+    ("computer_engineering", "Computer Engineering"),
+    ("computer_science", "Computer Science"),
+    ("chemical_engineering", "Chemical Engineering"),
+    ("civil_engineering", "Civil Engineering"),
+    ("electronics_engineering", "Electronics Engineering"),
+    ("electrical_engineering", "Electrical Engineering"),
+    ("engineering_sciences_applied_mathematics", "Engineering Sciences (Applied Mathematics)"),
+    ("engineering_sciences_applied_physics", "Engineering Sciences (Applied Physics)"),
+    ("engineering_sciences_engineering", "Engineering Sciences (Engineering)"),
+    ("mechanical_engineering", "Mechanical Engineering"),
+    ("materials_engineering", "Materials Engineering"),
+    ("nanotechnology_materials_engineering", "Nanotechnology and Materials Engineering"),
+    ("engineering_management", "Engineering Management"),
 ]
 
 ENTRY_TEST_OPTION_CHOICES = [
@@ -161,7 +354,6 @@ TEST_CENTER_CHOICES = [
     ("islamabad", "Islamabad"),
     ("quetta", "Quetta"),
     ("multan", "Multan"),
-    ("other", "Other"),
 ]
 
 TEST_TYPE_CHOICES = [
@@ -170,7 +362,6 @@ TEST_TYPE_CHOICES = [
     ("mcat", "MCAT"),
     ("sat", "SAT"),
     ("university_specific", "University-Specific Test"),
-    ("other", "Other"),
 ]
 
 ADMISSION_SCHEME_CHOICES = [
@@ -178,7 +369,6 @@ ADMISSION_SCHEME_CHOICES = [
     ("self_finance", "Self Finance"),
     ("special_quota", "Special Quota"),
     ("overseas_pakistani", "Overseas Pakistani"),
-    ("other", "Other"),
 ]
 
 PAYMENT_MODE_CHOICES = [
@@ -227,7 +417,9 @@ class Application(models.Model):
     # are handled separately below via their own status properties, since
     # they are post-submission / post-decision steps and shouldn't affect
     # whether Section I is ready to submit.
-    SECTION_KEYS = [
+        # Section I — everything the applicant fills in before "Confirm &
+    # Submit". This alone gates is_ready_for_submission.
+    SECTION_I_KEYS = [
         "personal_info_status",
         "contact_address_status",
         "academic_info_status",
@@ -235,11 +427,23 @@ class Application(models.Model):
         "admission_test_status",
         "admission_scheme_status",
         "employment_status",
-        "form_submission_status",
+        "application_form_status",
+    ]
+
+    # Section II — processing fee + references/LOR. Only unlocks once
+    # Section I has been submitted (status != "draft").
+    SECTION_II_KEYS = [
         "processing_fee_status",
         "referee_information_status",
+    ]
+
+    # Section III — test center. Only unlocks once Section II is complete.
+    SECTION_III_KEYS = [
         "test_center_status",
     ]
+
+    # Full list, used for the overall checklist/progress display only.
+    SECTION_KEYS = SECTION_I_KEYS + SECTION_II_KEYS + SECTION_III_KEYS
 
     SECTION_LABELS = {
         "personal_info_status": "Personal Information",
@@ -249,7 +453,7 @@ class Application(models.Model):
         "admission_test_status": "Admission Test",
         "admission_scheme_status": "Admission Scheme",
         "employment_status": "Current Employment",
-        "form_submission_status": "Form Submission",
+        "application_form_status": "Application Form",
         "processing_fee_status": "Processing Fee",
         "referee_information_status": "References & LOR",
         "test_center_status": "Test Center",
@@ -308,14 +512,15 @@ class Application(models.Model):
             return "not_started"
 
     @property
-    def form_submission_status(self):
+    def application_form_status(self):
         try:
-            return self.form_submission.status
-        except FormSubmission.DoesNotExist:
+            return self.application_form.status
+        except ApplicationForm.DoesNotExist:
             return "not_started"
         
     # -- Section II / III status (kept separate from SECTION_KEYS on
     # purpose — see the comment above SECTION_KEYS). --------------------
+    
     @property
     def processing_fee_status(self):
         try:
@@ -379,11 +584,38 @@ class Application(models.Model):
         return items
 
     @property
+    def checklist_section_i(self):
+        status_labels = dict(SECTION_STATUS_CHOICES)
+
+        items = []
+        for key in self.SECTION_I_KEYS:
+            status = getattr(self, key)
+            items.append(
+                {
+                    "key": key,
+                    "name": self.SECTION_LABELS[key],
+                    "status_key": status.replace("_", ""),
+                    "status_label": status_labels.get(status, status),
+                }
+            )
+
+        return items
+
+    @property
     def is_ready_for_submission(self):
+        """Section I only — this is what gates the Submit button."""
         return (
-            self.sections_completed_count == self.sections_total
+            all(
+                getattr(self, key) == "completed"
+                for key in self.SECTION_I_KEYS
+            )
             and self.status == "draft"
         )
+    
+    @property
+    def section_i_locked(self):
+        """Section I is editable while in draft, read-only after submission."""
+        return self.status != "draft"
 
 
 # ---------------------------------------------------------------------------
@@ -742,10 +974,28 @@ class ProgramPreference(models.Model):
         default="not_started",
     )
 
-    program_choice = models.CharField(
-        max_length=50,
-        choices=PROGRAM_CHOICES,
+    degree_level = models.CharField(
+        max_length=10,
+        choices=GRADUATE_DEGREE_LEVEL_CHOICES,
     )
+
+    discipline = models.CharField(
+        max_length=50,
+        choices=GRADUATE_DISCIPLINE_CHOICES,
+    )
+
+    def clean(self):
+        # PhD in Engineering Management and Nanotechnology aren't offered
+        # per the source list (PhD list omits Engineering Management,
+        # and "Nanotechnology and Materials Engineering" appears only
+        # under MS, with plain "Materials Engineering" under PhD).
+        if self.degree_level == "phd" and self.discipline in (
+            "engineering_management",
+            "nanotechnology_materials_engineering",
+        ):
+            raise ValidationError(
+                {"discipline": "This discipline is not offered at the PhD level."}
+            )
 
     def __str__(self):
         return f"ProgramPreference: {self.application}"
@@ -946,14 +1196,14 @@ class CurrentEmployment(models.Model):
 
 
 # ---------------------------------------------------------------------------
-# 8. Form Submission
+# 8. Applcation Form 
 # ---------------------------------------------------------------------------
 
-class FormSubmission(models.Model):
+class ApplicationForm(models.Model):
     application = models.OneToOneField(
         Application,
         on_delete=models.CASCADE,
-        related_name="form_submission",
+        related_name="application_form",
     )
 
     status = models.CharField(
@@ -967,7 +1217,7 @@ class FormSubmission(models.Model):
     submitted_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f"FormSubmission: {self.application}"
+        return f"ApplicationForm: {self.application}"
 
 # ---------------------------------------------------------------------------
 # SECTION II
@@ -1092,5 +1342,13 @@ class TestCenter(models.Model):
         default="not_started",
     )
 
+    preferred_test_center = models.CharField(
+        "Preferred Test Center",
+        max_length=20,
+        choices=TEST_CENTER_CHOICES,
+    )
+
     def __str__(self):
         return f"TestCenter: {self.application}"
+
+    

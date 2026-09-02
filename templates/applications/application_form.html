@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Review Your Sections{% endblock %}
+{% block page_title %}Review Your Sections{% endblock %}
+{% block content %}
+<div class="page-intro">
+    <div>
+        <h2>Review your sections</h2>
+        <p>Confirm every section below is complete before continuing to the declaration.</p>
+    </div>
+</div>
+<div class="card card-pad">
+    <div class="section-title">
+        Application checklist
+    </div>
+    <p class="section-sub">
+        {{ progress_percent }}% complete
+    </p>
+    <div class="progress-bar-track">
+        <div
+            class="progress-bar-fill"
+            data-percent="{{ progress_percent }}"
+            style="width:0"
+        ></div>
+    </div>
+    <div class="checklist">
+        {% for item in checklist %}
+            <div class="checklist-row">
+                <div class="checklist-left">
+                    <span class="checklist-icon checklist-icon--{{ item.status_key }}">
+                        {% if item.status_key == 'completed' %}
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:12px;height:12px;">
+                                <path d="M5 13l4 4L19 7"/>
+                            </svg>
+                        {% elif item.status_key == 'needscorrection' %}
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:12px;height:12px;">
+                                <line x1="12" y1="8" x2="12" y2="13"/>
+                                <circle cx="12" cy="16.5" r="0.5" fill="currentColor"/>
+                            </svg>
+                        {% elif item.status_key == 'inprogress' %}
+                            <span class="checklist-dot"></span>
+                        {% endif %}
+                    </span>
+                    <span class="checklist-name">
+                        {{ item.name }}
+                    </span>
+                </div>
+                <span class="status-badge status--{{ item.status_key }}">
+                    {{ item.status_label }}
+                </span>
+            </div>
+
+        {% empty %}
+            <div class="notice">
+                <div class="notice-title">
+                    No application sections found
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if not is_ready_for_submission %}
+        <div class="notice mt-3">
+            <div class="notice-icon notice-icon--warn">!</div>
+            <div>
+                <div class="notice-title">Sections still incomplete</div>
+                <div class="notice-meta">
+                    Go back and complete every section above before continuing.
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <form method="post" class="form-actions mt-3">
+        {% csrf_token %}
+        <a class="btn btn-outline" href="{% url 'continue_application' %}">
+            Back to Application
+        </a>
+        <button
+            class="btn btn-primary"
+            type="submit"
+            {% if not is_ready_for_submission %}disabled{% endif %}
+        >
+            Continue to Declaration
+        </button>
+    </form>
+</div>
+{% endblock %}

@@ -50,11 +50,6 @@
                 <a class="summary-value" href="{% url 'step_employment' %}">Review</a>
             </div>
             <div class="summary-row">
-                <span class="summary-label">Documents</span>
-                <span class="status-badge status-badge--sm status--{{ application.documents_status|cut:'_' }}">{{ application.documents_status|cut:'_'|title }}</span>
-                <a class="summary-value" href="{% url 'documents' %}">Review</a>
-            </div>
-            <div class="summary-row">
                 <span class="summary-label">Declaration</span>
                 <span class="status-badge status-badge--sm {% if application.declaration_accepted %}status--completed{% else %}status--notstarted{% endif %}">{% if application.declaration_accepted %}Accepted{% else %}Not accepted{% endif %}</span>
                 <a class="summary-value" href="{% url 'declaration' %}">Review</a>

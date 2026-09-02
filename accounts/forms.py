@@ -21,7 +21,6 @@ class StyledFormMixin:
                 existing = widget.attrs.get("class", "")
                 widget.attrs["class"] = (existing + " form-control").strip()
 
-
 class SignUpForm(StyledFormMixin, UserCreationForm):
     PROGRAM_CHOICES = [
         ("MS", "MS"),
@@ -34,34 +33,15 @@ class SignUpForm(StyledFormMixin, UserCreationForm):
         error_messages={"required": "Please select the program you're applying for."},
     )
     name_validator = RegexValidator(r"^[A-Za-z]+(?:[-'][A-Za-z]+)*$", "Use letters only.")
-    first_name = forms.CharField(max_length=150, required=True, validators=[name_validator])
-    last_name = forms.CharField(max_length=150, required=True, validators=[name_validator])
+    full_name = forms.CharField(max_length=150, label="Full name",validators=[name_validator])
     email = forms.EmailField(required=True)
-    phone_number = forms.CharField(
-        max_length=12,
-        required=False,
-        validators=[pakistani_phone],
-        widget=forms.TextInput(
-            attrs={"placeholder": "923XXXXXXXXX"}
-        ),
-    )
     agree_terms = forms.BooleanField(
         required=True,
         label="I agree to the Terms of Service and Privacy Policy",
     )
-
     class Meta:
         model = CustomUser
-        fields = (
-            "first_name",
-            "last_name",
-            "username",
-            "email",
-            "phone_number",
-            "password1",
-            "password2",
-            "agree_terms",
-        )
+        fields = ["full_name", "email", "program", "password1", "password2", "agree_terms"]
 
     def clean_email(self):
         email = self.cleaned_data["email"].strip().lower()

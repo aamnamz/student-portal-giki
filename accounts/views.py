@@ -1,5 +1,5 @@
 import base64
-
+from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
@@ -68,16 +68,29 @@ def my_profile(request):
 
 
 @login_required
-def settings_view(request):
-    profile, _ = Profile.objects.get_or_create(user=request.user)
+def change_password_view(request):
     success = False
+    error = None
+
     if request.method == "POST":
-        profile.email_notifications = request.POST.get("email_notifications") == "on"
-        profile.sms_notifications = request.POST.get("sms_notifications") == "on"
-        profile.save()
-        success = True
-    return render(request, "accounts/settings.html", {
+        current_password = request.POST.get("current_password")
+        new_password = request.POST.get("new_password")
+        confirm_password = request.POST.get("confirm_password")
+
+        if not request.user.check_password(current_password):
+            error = "Your current password is incorrect."
+        elif new_password != confirm_password:
+            error = "The new passwords do not match."
+        elif not new_password:
+            error = "Please enter a new password."
+        else:
+            request.user.set_password(new_password)
+            request.user.save()
+            update_session_auth_hash(request, request.user)
+            success = True
+
+    return render(request, "accounts/change_password.html", {
         "active_nav": "settings",
-        "profile": profile,
         "success": success,
+        "error": error,
     })

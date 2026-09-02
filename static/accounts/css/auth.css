@@ -9,6 +9,7 @@
     --off-white: #f7f9fc;
     --line: #e3e8f0;
     --text-muted: #6b7385;
+
     --danger: #d33a4b;
     --danger-soft: #fdeced;
 
@@ -20,31 +21,77 @@
     --font-sans: "Inter", system-ui, -apple-system, sans-serif;
 }
 
+
+/* =========================================================
+   BASE
+   ========================================================= */
+
+html,
+body {
+    height: 100%;
+}
+
 body {
     font-family: var(--font-sans);
     background-color: var(--off-white);
     color: #1c2333;
 }
 
+
 /* =========================================================
-   VISUAL PANEL (left) — hidden below lg via d-none d-lg-flex
+   FULL-HEIGHT, NON-SCROLLING DESKTOP LAYOUT
+   ========================================================= */
+
+.container-fluid.min-vh-100,
+.row.g-0.min-vh-100 {
+    height: 100vh;
+    min-height: 100vh;
+}
+
+.auth-visual,
+.auth-form-side {
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+}
+
+.auth-form-side {
+    overflow-y: auto;
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+}
+
+
+/* =========================================================
+   VISUAL PANEL (LEFT)
+   Hidden below lg through Bootstrap d-none d-lg-flex
    ========================================================= */
 
 .auth-visual {
     padding: 3rem 4rem 2.5rem;
     color: var(--white);
+
     background-image:
-        linear-gradient(155deg, rgba(10, 27, 61, 0.72) 0%, rgba(5, 13, 31, 0.78) 70%),
+        linear-gradient(
+            155deg,
+            rgba(10, 27, 61, 0.72) 0%,
+            rgba(5, 13, 31, 0.78) 70%
+        ),
         var(--visual-bg-image);
+
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
 }
 
+
+/* Brand */
+
 .auth-visual .brand img.logo {
     width: 46px;
     height: 46px;
     object-fit: contain;
+
     background: var(--white);
     border-radius: 10px;
     padding: 5px;
@@ -63,6 +110,9 @@ body {
     text-transform: uppercase;
     color: rgba(255, 255, 255, 0.55);
 }
+
+
+/* Visual copy */
 
 .auth-visual .visual-copy {
     max-width: 600px;
@@ -97,6 +147,9 @@ body {
     opacity: 0.85;
 }
 
+
+/* Visual stats */
+
 .auth-visual .visual-stats {
     border-top: 1px solid rgba(255, 255, 255, 0.14);
 }
@@ -118,8 +171,9 @@ body {
     color: rgba(255, 255, 255, 0.4);
 }
 
+
 /* =========================================================
-   FORM PANEL (right)
+   FORM PANEL (RIGHT)
    ========================================================= */
 
 .auth-form-side {
@@ -131,10 +185,16 @@ body {
     max-width: 390px;
 }
 
+
+/* =========================================================
+   MOBILE BRAND
+   ========================================================= */
+
 .mobile-brand img {
     width: 34px;
     height: 34px;
     object-fit: contain;
+
     background: var(--navy-900);
     border-radius: 8px;
     padding: 4px;
@@ -147,27 +207,40 @@ body {
     color: var(--navy-900);
 }
 
+
+/* =========================================================
+   AUTH HEADING
+   ========================================================= */
+
+.auth-heading {
+    margin-bottom: 0.6rem !important;
+}
+
 .auth-heading h2 {
     font-family: var(--font-serif);
     font-weight: 700;
     color: var(--navy-900);
-    font-size: 1.6rem;
-    margin-bottom: 0.4rem;
+
+    font-size: 1.25rem;
+    line-height: 1.25;
+
+    margin-bottom: 0.15rem;
 }
 
 .auth-heading p {
     color: var(--text-muted);
-    font-size: 0.9rem;
-    line-height: 1.55;
+    font-size: 0.8rem;
+    line-height: 1.3;
 }
 
+
 /* =========================================================
-   PROGRAM TOGGLE (signup) — segmented single-select control
+   PROGRAM TOGGLE
    ========================================================= */
 
 .program-toggle {
     display: flex;
-    gap: 0.6rem;
+    gap: 0.4rem;
 }
 
 .program-toggle .program-option {
@@ -178,6 +251,7 @@ body {
 .program-toggle input[type="radio"] {
     position: absolute;
     inset: 0;
+
     margin: 0;
     opacity: 0;
     cursor: pointer;
@@ -186,16 +260,25 @@ body {
 .program-toggle .btn-program {
     display: block;
     text-align: center;
-    padding: 0.65rem 1rem;
+
+    padding: 0.45rem 0.6rem;
+
     border: 1.5px solid var(--line);
     border-radius: var(--radius-md);
+
     background: var(--off-white);
     color: #2a3145;
+
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
+
     cursor: pointer;
     user-select: none;
-    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease;
 }
 
 .program-toggle .btn-program:hover {
@@ -212,19 +295,45 @@ body {
     box-shadow: 0 0 0 0.2rem rgba(47, 93, 199, 0.25);
 }
 
-/* Inputs — Bootstrap .form-control skinned to match brand */
+
+/* =========================================================
+   FORM FIELDS
+   ========================================================= */
+
+.auth-card .mb-3 {
+    margin-bottom: 0.55rem !important;
+}
+
+.auth-card label.form-label {
+    display: block;
+
+    margin-bottom: 1rem;
+
+    font-weight: 600;
+    font-size: 0.87rem;
+    color: #2a3145;
+}
 
 .auth-card .form-control {
     border-radius: var(--radius-md);
     border: 1.5px solid var(--line);
+
     background: var(--off-white);
-    padding: 0.7rem 1rem;
-    font-size: 0.95rem;
+
+    padding: 0.5rem 0.85rem;
+
+    font-size: 0.87rem;
+
+    transition:
+        border-color 0.15s ease,
+        background-color 0.15s ease,
+        box-shadow 0.15s ease;
 }
 
 .auth-card .form-control:focus {
     border-color: var(--navy-accent);
     background: var(--white);
+
     box-shadow: 0 0 0 0.2rem rgba(47, 93, 199, 0.14);
 }
 
@@ -232,23 +341,40 @@ body {
     border-color: var(--danger);
 }
 
+
+/* Bootstrap row spacing */
+
+.auth-card .row.g-3 {
+    --bs-gutter-y: 0.55rem;
+    --bs-gutter-x: 0.75rem;
+}
+
+
+/* Input groups */
+
 .auth-card .input-group-text {
     border-radius: var(--radius-md);
+
     background: var(--off-white);
     border: 1.5px solid var(--line);
     border-left: none;
+
     cursor: pointer;
     color: var(--text-muted);
 }
 
-.auth-card label.form-label {
-    font-weight: 600;
-    font-size: 0.83rem;
-    color: #2a3145;
+
+/* =========================================================
+   CHECKBOXES
+   ========================================================= */
+
+.auth-card .form-check.mb-3 {
+    margin-bottom: 0.5rem !important;
 }
 
 .auth-card .form-check-input {
     accent-color: var(--navy-900);
+
     border: 1.5px solid var(--line);
     cursor: pointer;
 }
@@ -256,9 +382,15 @@ body {
 .auth-card .form-check-label {
     color: var(--text-muted);
     font-size: 0.85rem;
+
     cursor: pointer;
     user-select: none;
 }
+
+
+/* =========================================================
+   LINKS
+   ========================================================= */
 
 .auth-card a.small {
     color: var(--navy-accent);
@@ -269,76 +401,11 @@ body {
     color: var(--navy-900);
 }
 
-/* Primary / Google buttons */
-
-.btn-giki-primary {
-    background: var(--navy-900);
-    border: none;
-    color: var(--white);
-    font-weight: 600;
-    border-radius: var(--radius-md);
-    padding: 0.8rem 1rem;
-    letter-spacing: 0.01em;
-    transition: background 0.15s ease, transform 0.1s ease;
-}
-
-.btn-giki-primary:hover {
-    background: var(--navy-700);
-    color: var(--white);
-    transform: translateY(-1px);
-}
-
-.btn-giki-primary:active {
-    transform: translateY(0);
-}
-
-.btn-google {
-    background: var(--white);
-    border: 1.5px solid var(--line);
-    color: #1c2333;
-    font-weight: 600;
-    border-radius: var(--radius-md);
-    padding: 0.72rem 1rem;
-    transition: box-shadow 0.15s ease, transform 0.1s ease, border-color 0.15s ease;
-}
-
-.btn-google:hover {
-    box-shadow: 0 6px 18px rgba(10, 27, 61, 0.09);
-    border-color: #c7cedb;
-    transform: translateY(-1px);
-    color: #1c2333;
-}
-
-.btn-google img {
-    width: 20px;
-    height: 20px;
-}
-
-/* Divider */
-
-.divider-with-text {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    color: var(--text-muted);
-    font-size: 0.78rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-}
-
-.divider-with-text::before,
-.divider-with-text::after {
-    content: "";
-    flex: 1;
-    height: 1px;
-    background: var(--line);
-}
-
-/* Footer link */
-
 .auth-footer-link {
-    font-size: 0.9rem;
+    font-size: 0.82rem;
     color: var(--text-muted);
+
+    margin-top: 0.6rem !important;
 }
 
 .auth-footer-link a {
@@ -351,28 +418,147 @@ body {
     text-decoration: underline;
 }
 
-/* Password strength (signup) */
+
+/* =========================================================
+   PRIMARY BUTTON
+   ========================================================= */
+
+.btn-giki-primary {
+    background: var(--navy-900);
+    border: none;
+    color: var(--white);
+
+    font-weight: 600;
+    border-radius: var(--radius-md);
+
+    padding: 0.6rem 1rem;
+
+    font-size: 0.9rem;
+    letter-spacing: 0.01em;
+
+    transition:
+        background 0.15s ease,
+        transform 0.1s ease;
+}
+
+.btn-giki-primary:hover {
+    background: var(--navy-700);
+    color: var(--white);
+
+    transform: translateY(-1px);
+}
+
+.btn-giki-primary:active {
+    transform: translateY(0);
+}
+
+
+/* =========================================================
+   GOOGLE BUTTON
+   ========================================================= */
+
+.btn-google {
+    background: var(--white);
+
+    border: 1.5px solid var(--line);
+    color: #1c2333;
+
+    font-weight: 600;
+    border-radius: var(--radius-md);
+
+    padding: 0.55rem 1rem;
+
+    font-size: 0.87rem;
+
+    transition:
+        box-shadow 0.15s ease,
+        transform 0.1s ease,
+        border-color 0.15s ease;
+}
+
+.btn-google:hover {
+    box-shadow: 0 6px 18px rgba(10, 27, 61, 0.09);
+
+    border-color: #c7cedb;
+    color: #1c2333;
+
+    transform: translateY(-1px);
+}
+
+.btn-google img {
+    width: 20px;
+    height: 20px;
+}
+
+
+/* =========================================================
+   DIVIDER
+   ========================================================= */
+
+.divider-with-text {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    color: var(--text-muted);
+
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+
+    margin: 0.6rem 0 !important;
+}
+
+.divider-with-text::before,
+.divider-with-text::after {
+    content: "";
+
+    flex: 1;
+
+    height: 1px;
+
+    background: var(--line);
+}
+
+
+/* =========================================================
+   PASSWORD STRENGTH
+   ========================================================= */
 
 .pw-strength-track {
-    height: 5px;
+    height: 3px;
+
+    margin-top: 0.35rem !important;
+
     border-radius: 4px;
+
     background: var(--line);
+
     overflow: hidden;
 }
 
 .pw-strength-fill {
     height: 100%;
     width: 0%;
+
     border-radius: 4px;
-    transition: width 0.25s ease, background-color 0.25s ease;
+
+    transition:
+        width 0.25s ease,
+        background-color 0.25s ease;
 }
 
 .pw-strength-label {
-    font-size: 0.75rem;
+    font-size: 0.68rem;
+    line-height: 1.4;
+
     color: var(--text-muted);
 }
 
-/* Validation messages */
+
+/* =========================================================
+   VALIDATION / ALERTS
+   ========================================================= */
 
 .invalid-feedback-custom,
 .alert-danger {
@@ -382,30 +568,165 @@ body {
 
 .alert-danger {
     background: var(--danger-soft);
+
     padding: 0.6rem 0.9rem;
+
     border-radius: var(--radius-sm);
 }
 
 
-
-
 /* =========================================================
-   RESPONSIVE TWEAKS (fine-tuning only — layout/show-hide is
-   handled by Bootstrap utility classes in the HTML)
+   DESKTOP HEIGHT TUNING
+   Keeps the authentication form compact enough to fit
+   comfortably inside a 100vh viewport.
    ========================================================= */
 
-@media (max-width: 991.98px) {
-    .auth-visual {
-        padding: 2.25rem 2rem;
+@media (min-width: 992px) {
+
+    .auth-card {
+        max-width: 390px;
+    }
+
+    .auth-heading h2 {
+        font-size: 1.25rem;
+    }
+
+    .auth-card .mb-3 {
+        margin-bottom: 0.55rem !important;
+    }
+
+    .auth-card .form-control {
+        padding: 0.5rem 0.85rem;
+    }
+
+    .btn-giki-primary {
+        padding: 0.6rem 1rem;
+    }
+
+    .btn-google {
+        padding: 0.55rem 1rem;
     }
 }
 
-@media (max-width: 575.98px) {
+
+/* =========================================================
+   TABLET / MOBILE
+   Natural scrolling below lg breakpoint.
+   ========================================================= */
+
+@media (max-width: 991.98px) {
+
+    html,
+    body {
+        height: auto;
+    }
+
+    .container-fluid.min-vh-100,
+    .row.g-0.min-vh-100 {
+        height: auto;
+        min-height: 100vh;
+    }
+
+    .auth-visual,
+    .auth-form-side {
+        height: auto;
+        max-height: none;
+    }
+
+    .auth-form-side {
+        overflow-y: visible;
+
+        padding-top: 1.5rem !important;
+        padding-bottom: 1.5rem !important;
+    }
+
     .auth-heading h2 {
         font-size: 1.35rem;
     }
 
+    .auth-heading p {
+        font-size: 0.82rem;
+        line-height: 1.4;
+    }
+
+    .auth-card label.form-label {
+        font-size: 0.83rem;
+    }
+
+    .auth-card .form-control {
+        padding: 0.65rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .program-toggle .btn-program {
+        padding: 0.55rem 0.7rem;
+        font-size: 0.83rem;
+    }
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 575.98px) {
+
+    .auth-form-side {
+        padding-top: 1.25rem !important;
+        padding-bottom: 1.25rem !important;
+    }
+
+    .auth-heading h2 {
+        font-size: 1.35rem;
+    }
+
+    .auth-heading p {
+        font-size: 0.82rem;
+    }
+
     .auth-card {
         max-width: 100%;
+    }
+
+    .auth-card .form-control {
+        padding: 0.65rem 0.9rem;
+    }
+
+    .program-toggle {
+        gap: 0.4rem;
+    }
+
+    .program-toggle .btn-program {
+        padding: 0.55rem 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    .btn-giki-primary {
+        padding: 0.65rem 1rem;
+    }
+
+    .btn-google {
+        padding: 0.6rem 1rem;
+    }
+}
+
+
+/* =========================================================
+   VERY SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 380px) {
+
+    .auth-heading h2 {
+        font-size: 1.25rem;
+    }
+
+    .auth-card .form-control {
+        font-size: 0.87rem;
+    }
+
+    .program-toggle .btn-program {
+        font-size: 0.76rem;
+        padding: 0.5rem 0.35rem;
     }
 }

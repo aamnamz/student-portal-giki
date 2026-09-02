@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 ('status', models.CharField(choices=[('not_started', 'Not Started'), ('in_progress', 'In Progress'), ('completed', 'Completed'), ('needs_correction', 'Needs Correction')], default='not_started', max_length=20)),
                 ('declaration_accepted', models.BooleanField(default=False)),
                 ('submitted_at', models.DateTimeField(blank=True, null=True)),
-                ('application', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='form_submission', to='applications.application')),
+                ('application', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='application_form', to='applications.application')),
             ],
         ),
         migrations.DeleteModel(
