@@ -1,9 +1,6 @@
 {% load static %}
-
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -211,13 +208,49 @@
           </svg>
         </button>
         <div class="topbar-actions d-flex align-items-center ms-auto">
-          <button class="icon-btn position-relative" aria-label="Notifications">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-              <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
-              <path d="M13.7 21a2 2 0 0 1-3.4 0" />
-            </svg>
-            {% if notification_count %}<span class="badge-dot">{{ notification_count }}</span>{% endif %}
-          </button>
+          <div class="notification-menu">
+            <button class="icon-btn position-relative" id="notificationTrigger" type="button" aria-label="Notifications"
+              aria-expanded="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.7 21a2 2 0 0 1-3.4 0" />
+              </svg>
+              {% if notification_count %}<span class="badge-dot">{{ notification_count }}</span>{% endif %}
+            </button>
+            <div class="notification-dropdown" id="notificationDropdown">
+              {% for notification in recent_notifications %}
+              <div
+                class="notification-row {% if not notification.is_read %}unread{% endif %} notification-{{ notification.level }}">
+                {% if notification.link %}
+                <a class="notification-content" href="{{ notification.link }}">
+                  <strong>{{ notification.title }}</strong>
+                  {% if notification.message %}
+                  <span>{{ notification.message }}</span>
+                  {% endif %}
+                </a>
+                {% else %}
+                <div class="notification-content">
+                  <strong>{{ notification.title }}</strong>
+                  {% if notification.message %}
+                  <span>{{ notification.message }}</span>
+                  {% endif %}
+                </div>
+                {% endif %}
+                {% if not notification.is_read %}
+                <button class="notification-read" type="button"
+                  data-read-url="{% url 'mark_notification_read' notification.pk %}"
+                  aria-label="Mark {{ notification.title }} as read">
+                  Mark read
+                </button>
+                {% endif %}
+              </div>
+              {% empty %}
+              <div class="notification-empty">
+                No new notifications
+              </div>
+              {% endfor %}
+            </div>
+          </div>
           <div class="topbar-divider"></div>
           <div class="profile-menu">
             <button class="profile-trigger d-flex align-items-center gap-2" id="profileTrigger">
@@ -232,7 +265,12 @@
                 {{ request.user.username|slice:":2"|upper }}
                 {% endif %}
               </span>
-              <span class="profile-name">{% if applicant_name %}{{ applicant_name }}{% elif request.user.get_full_name%}{{request.user.get_full_name }}{% else %}{{ request.user.username }}{% endif %}</span>
+              <span class="profile-name">
+                {% if applicant_name %}{{ applicant_name }}
+                {% elif request.user.get_full_name%}{{request.user.get_full_name }}
+                {% else %}{{ request.user.username }}
+                {% endif %}
+              </span>
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M6 9l6 6 6-6" />
               </svg>
@@ -255,6 +293,24 @@
       </main>
     </div>
   </div>
+  {% if step_guidance %}
+  <button class="icon-btn step-help-button" id="stepHelpButton" type="button" aria-label="Guidelines for this step"
+    aria-expanded="false" aria-controls="stepHelpPopover">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.9.4-1.5 1-1.5 2.2" />
+      <circle cx="12" cy="17" r="0.6" fill="currentColor" />
+    </svg>
+  </button>
+  <div class="step-help-popover" id="stepHelpPopover" aria-hidden="true">
+    <section class="step-help-content"> <span class="step-help-arrow"></span> <button class="step-help-close"
+        type="button" aria-label="Close guidelines" data-step-help-close>&times;</button>
+      <h2 id="stepHelpTitle">{{ step_guidance.title }}</h2>
+      <ul class="step-help-list"> {% for item in step_guidance.items %} <li> <span class="step-help-check"
+            aria-hidden="true">✓</span> <span>{{ item }}</span> </li> {% endfor %} </ul>
+    </section>
+  </div>
+  {% endif %}
   <div class="page-loader" id="pageLoader" aria-live="polite" aria-label="Loading" hidden>
     <div class="page-loader-card">
       <img class="giki-loader" src="{% static 'dashboard/images/giki.png' %}" alt="">
@@ -264,5 +320,4 @@
   <script src="{% static 'dashboard/js/dashboard.js' %}"></script>
   {% block extra_scripts %}{% endblock %}
 </body>
-
 </html>

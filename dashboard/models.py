@@ -40,3 +40,42 @@ class Notice(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Notification(models.Model):
+    LEVEL_CHOICES = [
+        ("info", "Info"),
+        ("success", "Success"),
+        ("warning", "Warning"),
+        ("danger", "Danger"),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="notifications",
+    )
+    title = models.CharField(max_length=255)
+    message = models.TextField(blank=True)
+    level = models.CharField(max_length=10, choices=LEVEL_CHOICES, default="info")
+    link = models.CharField(max_length=500, blank=True)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["user", "is_read"])]
+
+    def __str__(self):
+        return self.title
+
+
+def notify(user, title, message="", level="info", link=""):
+    """Create an in-app notification for one user."""
+    return Notification.objects.create(
+        user=user,
+        title=title,
+        message=message,
+        level=level,
+        link=link,
+    )

@@ -1,4 +1,5 @@
 from django import forms
+from django.forms import ChoiceField, ModelChoiceField
 
 from .models import (
     PersonalInfo,
@@ -18,22 +19,40 @@ from .models import (
 
 class StyledFormMixin:
     """Adds the CSS classes our templates expect (form-control /
-    form-check-input) to every field's widget automatically, so we
-    never have to remember to set them field-by-field."""
+    form-check-input) to every field's widget automatically, and removes
+    empty choices from ChoiceField / ModelChoiceField so selects/radios
+    don't show a blank option.
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        for field in self.fields.values():
+        for _name, field in self.fields.items():
             widget = field.widget
-            if isinstance(widget, (forms.CheckboxInput,)):
+
+            # Checkbox inputs get the form-check-input class
+            if isinstance(widget, forms.CheckboxInput):
                 existing = widget.attrs.get("class", "")
                 widget.attrs["class"] = (existing + " form-check-input").strip()
-            elif isinstance(widget, (forms.RadioSelect,)):
-                # Radios are styled per-option in the template, not here.
-                continue
+
+            # Radios are styled per-option in templates; don't add form-control
+            elif isinstance(widget, forms.RadioSelect):
+                pass
+
+            # Default: add form-control
             else:
                 existing = widget.attrs.get("class", "")
                 widget.attrs["class"] = (existing + " form-control").strip()
+
+            # Model selects should not render Django's automatic empty label.
+            if isinstance(field, ModelChoiceField):
+                field.empty_label = None
+
+            # Choice fields (selects and radio groups) must not render an
+            # empty option. This keeps placeholders out of the HTML itself.
+            if isinstance(field, ChoiceField):
+                field.choices = [
+                    c for c in field.choices if c[0] != "" and c[0] is not None
+                ]
 
 
 # ---------------------------------------------------------------------------
@@ -278,10 +297,10 @@ class ContactAddressForm(StyledFormMixin, forms.ModelForm):
     def save(self, commit=True):
         instance = super().save(commit=False)
         if self.cleaned_data.get("mailing_same_as_permanent"):
-            instance.mailing_house_street_no = self.cleaned_data[
+            instance.mailing_house_street_no = self.cleaned_data[  # type: ignore[index]
                 "mailing_house_street_no"
             ]
-            instance.mailing_mohalla_tehsil = self.cleaned_data[
+            instance.mailing_mohalla_tehsil = self.cleaned_data[  # type: ignore[index]
                 "mailing_mohalla_tehsil"
             ]
             instance.mailing_district = self.cleaned_data["mailing_district"]
@@ -570,6 +589,7 @@ class ApplicationFormForm(StyledFormMixin, forms.ModelForm):
         model = ApplicationForm
         fields = []
 
+
 # ---------------------------------------------------------------------------
 # SECTION II
 # ---------------------------------------------------------------------------
@@ -657,6 +677,7 @@ class TestCenterForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = TestCenter
         fields = ["preferred_test_center"]
+
 
 # ---------------------------------------------------------------------------
 # Declaration

@@ -411,6 +411,395 @@ document
   degreeSelect.addEventListener("change", sync);
   sync();
 })();
+
+
+(function () {
+  const selects = document.querySelectorAll(".field select");
+
+  if (!selects.length) {
+    return;
+  }
+
+  function closeAll(except) {
+    document.querySelectorAll(".custom-select.open").forEach((wrapper) => {
+      if (wrapper !== except) {
+        closeSelect(wrapper);
+      }
+    });
+  }
+
+  function closeSelect(wrapper) {
+    wrapper.classList.remove("open");
+
+    const trigger = wrapper.querySelector(".custom-select-trigger");
+
+    if (trigger) {
+      trigger.setAttribute("aria-expanded", "false");
+    }
+  }
+
+  function openSelect(wrapper) {
+    closeAll(wrapper);
+
+    wrapper.classList.add("open");
+
+    const trigger = wrapper.querySelector(".custom-select-trigger");
+
+    if (trigger) {
+      trigger.setAttribute("aria-expanded", "true");
+    }
+  }
+
+  function updateDisplay(wrapper, select) {
+    const valueElement =
+      wrapper.querySelector(".custom-select-value");
+
+    const selectedOption =
+      select.options[select.selectedIndex];
+
+    if (!valueElement || !selectedOption) {
+      return;
+    }
+
+    valueElement.textContent = selectedOption.textContent;
+
+    const isPlaceholder =
+      selectedOption.value === "" ||
+      selectedOption.disabled;
+
+    valueElement.classList.toggle(
+      "placeholder",
+      isPlaceholder
+    );
+
+    wrapper
+      .querySelectorAll(".custom-select-option")
+      .forEach((optionButton) => {
+        const selected =
+          optionButton.dataset.value === select.value;
+
+        optionButton.classList.toggle(
+          "selected",
+          selected
+        );
+
+        optionButton.setAttribute(
+          "aria-selected",
+          selected ? "true" : "false"
+        );
+      });
+  }
+
+  function buildCustomSelect(select) {
+    if (
+      select.dataset.customSelectInitialized === "true"
+    ) {
+      return;
+    }
+
+    select.dataset.customSelectInitialized = "true";
+
+    const wrapper =
+      document.createElement("div");
+
+    wrapper.className = "custom-select";
+
+    if (select.disabled) {
+      wrapper.classList.add("is-disabled");
+    }
+
+    const trigger =
+      document.createElement("button");
+
+    trigger.type = "button";
+    trigger.className =
+      "custom-select-trigger";
+
+    trigger.setAttribute(
+      "aria-haspopup",
+      "listbox"
+    );
+
+    trigger.setAttribute(
+      "aria-expanded",
+      "false"
+    );
+
+    trigger.disabled = select.disabled;
+
+    const value =
+      document.createElement("span");
+
+    value.className =
+      "custom-select-value";
+
+    const arrow =
+      document.createElement("span");
+
+    arrow.className =
+      "custom-select-arrow";
+
+    arrow.setAttribute(
+      "aria-hidden",
+      "true"
+    );
+
+    trigger.appendChild(value);
+    trigger.appendChild(arrow);
+
+    const menu =
+      document.createElement("div");
+
+    menu.className =
+      "custom-select-menu";
+
+    menu.setAttribute(
+      "role",
+      "listbox"
+    );
+
+    const options =
+      Array.from(select.options);
+
+    options.forEach((option, index) => {
+      const optionButton =
+        document.createElement("button");
+
+      optionButton.type = "button";
+      optionButton.className =
+        "custom-select-option";
+
+      optionButton.textContent =
+        option.textContent;
+
+      optionButton.dataset.value =
+        option.value;
+
+      optionButton.dataset.index =
+        index;
+
+      optionButton.setAttribute(
+        "role",
+        "option"
+      );
+
+      optionButton.setAttribute(
+        "aria-selected",
+        "false"
+      );
+
+      if (option.disabled) {
+        optionButton.disabled = true;
+        optionButton.classList.add("disabled");
+      }
+
+      optionButton.addEventListener(
+        "click",
+        function (event) {
+          event.stopPropagation();
+
+          if (option.disabled) {
+            return;
+          }
+
+          select.selectedIndex = index;
+
+          select.dispatchEvent(
+            new Event("change", {
+              bubbles: true
+            })
+          );
+
+          updateDisplay(
+            wrapper,
+            select
+          );
+
+          closeSelect(wrapper);
+
+          trigger.focus();
+        }
+      );
+
+      menu.appendChild(optionButton);
+    });
+
+    wrapper.appendChild(trigger);
+    wrapper.appendChild(menu);
+
+    select.parentNode.insertBefore(
+      wrapper,
+      select.nextSibling
+    );
+
+    trigger.addEventListener(
+      "click",
+      function (event) {
+        event.stopPropagation();
+
+        if (select.disabled) {
+          return;
+        }
+
+        if (
+          wrapper.classList.contains("open")
+        ) {
+          closeSelect(wrapper);
+        } else {
+          openSelect(wrapper);
+        }
+      }
+    );
+
+    trigger.addEventListener(
+      "keydown",
+      function (event) {
+        const enabledOptions =
+          options.filter(
+            (option) => !option.disabled
+          );
+
+        if (!enabledOptions.length) {
+          return;
+        }
+
+        let currentIndex =
+          select.selectedIndex;
+
+        if (event.key === "ArrowDown") {
+          event.preventDefault();
+
+          let nextIndex =
+            currentIndex + 1;
+
+          while (
+            nextIndex < options.length &&
+            options[nextIndex].disabled
+          ) {
+            nextIndex++;
+          }
+
+          if (nextIndex < options.length) {
+            select.selectedIndex =
+              nextIndex;
+
+            select.dispatchEvent(
+              new Event("change", {
+                bubbles: true
+              })
+            );
+
+            updateDisplay(
+              wrapper,
+              select
+            );
+          }
+
+          if (
+            !wrapper.classList.contains("open")
+          ) {
+            openSelect(wrapper);
+          }
+        }
+
+        if (event.key === "ArrowUp") {
+          event.preventDefault();
+
+          let previousIndex =
+            currentIndex - 1;
+
+          while (
+            previousIndex >= 0 &&
+            options[previousIndex].disabled
+          ) {
+            previousIndex--;
+          }
+
+          if (previousIndex >= 0) {
+            select.selectedIndex =
+              previousIndex;
+
+            select.dispatchEvent(
+              new Event("change", {
+                bubbles: true
+              })
+            );
+
+            updateDisplay(
+              wrapper,
+              select
+            );
+          }
+
+          if (
+            !wrapper.classList.contains("open")
+          ) {
+            openSelect(wrapper);
+          }
+        }
+
+        if (
+          event.key === "Enter" ||
+          event.key === " "
+        ) {
+          event.preventDefault();
+
+          if (
+            wrapper.classList.contains("open")
+          ) {
+            closeSelect(wrapper);
+          } else {
+            openSelect(wrapper);
+          }
+        }
+
+        if (event.key === "Escape") {
+          event.preventDefault();
+          closeSelect(wrapper);
+        }
+      }
+    );
+
+    select.addEventListener(
+      "change",
+      function () {
+        updateDisplay(
+          wrapper,
+          select
+        );
+      }
+    );
+
+    updateDisplay(
+      wrapper,
+      select
+    );
+  }
+
+  selects.forEach(buildCustomSelect);
+
+  document.addEventListener(
+    "click",
+    function () {
+      closeAll(null);
+    }
+  );
+
+  document.addEventListener(
+    "keydown",
+    function (event) {
+      if (event.key !== "Escape") {
+        return;
+      }
+
+      document
+        .querySelectorAll(".custom-select.open")
+        .forEach(closeSelect);
+    }
+  );
+})();
+
+
 const photoInput =
   document.getElementById(
     "{{ form.student_photo.id_for_label }}"

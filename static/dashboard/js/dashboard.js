@@ -145,6 +145,95 @@ document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener('click', function () { dropdown.classList.remove('open'); });
   }
 
+  // Notification dropdown follows the same toggle/click-outside behavior.
+  var notificationTrigger = document.getElementById('notificationTrigger');
+  var notificationDropdown = document.getElementById('notificationDropdown');
+  if (notificationTrigger && notificationDropdown) {
+    notificationTrigger.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var isOpen = notificationDropdown.classList.toggle('open');
+      notificationTrigger.setAttribute('aria-expanded', String(isOpen));
+    });
+    notificationDropdown.addEventListener('click', function (e) { e.stopPropagation(); });
+    document.addEventListener('click', function () {
+      notificationDropdown.classList.remove('open');
+      notificationTrigger.setAttribute('aria-expanded', 'false');
+    });
+  }
+
+  function getCookie(name) {
+    var value = '; ' + document.cookie;
+    var parts = value.split('; ' + name + '=');
+    return parts.length === 2 ? parts.pop().split(';').shift() : '';
+  }
+  document.querySelectorAll('.notification-read[data-read-url]').forEach(function (button) {
+    button.addEventListener('click', function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      fetch(button.getAttribute('data-read-url'), {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCookie('csrftoken'), 'X-Requested-With': 'XMLHttpRequest' }
+      }).then(function (response) { return response.json(); }).then(function (data) {
+        if (!data.ok) return;
+        var row = button.closest('.notification-row');
+        if (row) row.classList.remove('unread');
+        button.remove();
+        var badge = document.querySelector('#notificationTrigger .badge-dot');
+        if (badge) {
+          var count = Math.max(0, (parseInt(badge.textContent, 10) || 1) - 1);
+          if (count) badge.textContent = count; else badge.remove();
+        }
+      });
+    });
+  });
+
+
+var helpButton = document.getElementById('stepHelpButton');
+var helpPopover = document.getElementById('stepHelpPopover');
+
+if (helpButton && helpPopover) {
+  function closeStepHelp() {
+    helpPopover.classList.remove('open');
+    helpPopover.setAttribute('aria-hidden', 'true');
+    helpButton.setAttribute('aria-expanded', 'false');
+  }
+
+  helpButton.addEventListener('click', function (event) {
+    event.stopPropagation();
+
+    var isOpen = helpPopover.classList.contains('open');
+
+    if (isOpen) {
+      closeStepHelp();
+    } else {
+      helpPopover.classList.add('open');
+      helpPopover.setAttribute('aria-hidden', 'false');
+      helpButton.setAttribute('aria-expanded', 'true');
+    }
+  });
+
+  helpPopover.querySelectorAll('[data-step-help-close]').forEach(function (control) {
+    control.addEventListener('click', closeStepHelp);
+  });
+
+  document.addEventListener('click', function (event) {
+    if (
+      helpPopover.classList.contains('open') &&
+      !helpPopover.contains(event.target) &&
+      !helpButton.contains(event.target)
+    ) {
+      closeStepHelp();
+    }
+  });
+
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape' && helpPopover.classList.contains('open')) {
+      closeStepHelp();
+      helpButton.focus();
+    }
+  });
+}
+
   // Animate progress ring + bar from 0 to their data-percent value
   document.querySelectorAll('[data-percent]').forEach(function (el) {
     var target = parseInt(el.getAttribute('data-percent'), 10) || 0;

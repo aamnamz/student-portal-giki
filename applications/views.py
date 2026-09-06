@@ -10,15 +10,17 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 from PIL import Image
 
+from dashboard.models import notify
+
 from .ai_models import validate_passport_image
 from .forms import (
     AcademicInformationForm,
     AdmissionSchemeForm,
     AdmissionTestForm,
+    ApplicationFormForm,
     ContactAddressForm,
     CurrentEmploymentForm,
     DeclarationForm,
-    ApplicationFormForm,
     PersonalInformationForm,
     ProcessingFeeForm,
     ProgramPreferenceForm,
@@ -30,9 +32,9 @@ from .models import (
     AdmissionScheme,
     AdmissionTest,
     Application,
+    ApplicationForm,
     ContactAddress,
     CurrentEmployment,
-    ApplicationForm,
     PersonalInfo,
     ProcessingFee,
     ProgramPreference,
@@ -41,9 +43,6 @@ from .models import (
 )
 
 
-# ---------------------------------------------------------------------------
-# Status timeline
-# ---------------------------------------------------------------------------
 STATUS_TIMELINE_STEPS = [
     "Registration",
     "Application Started",
@@ -63,9 +62,7 @@ STATUS_TO_STEP_INDEX = {
     "rejected": 5,
 }
 
-# ---------------------------------------------------------------------------
-# Continue Application — redirects to the first unfilled Section I step
-# ---------------------------------------------------------------------------
+
 STEP_ROUTE_ORDER = [
     ("personal_info_status", "step_personal_information"),
     ("contact_address_status", "step_contact_address"),
@@ -78,16 +75,38 @@ STEP_ROUTE_ORDER = [
 ]
 
 
-@login_required
-def continue_application(request):
-    application = _get_or_create_application(request.user)
+SECTION_MODEL_MAP = {
+    "personal_info_status": (PersonalInfo, "personal_info"),
+    "contact_address_status": (ContactAddress, "contact_address"),
+    "academic_info_status": (AcademicInfo, "academic_info"),
+    "program_preference_status": (ProgramPreference, "program_preference"),
+    "admission_test_status": (AdmissionTest, "admission_test"),
+    "admission_scheme_status": (AdmissionScheme, "admission_scheme"),
+    "employment_status": (CurrentEmployment, "current_employment"),
+    "processing_fee_status": (ProcessingFee, "processing_fee"),
+    "referee_information_status": (RefereeInformation, "referee_information"),
+    "test_center_status": (TestCenter, "test_center"),
+    "application_form_status": (ApplicationForm, "application_form"),
+}
 
-    for status_field, route_name in STEP_ROUTE_ORDER:
-        if getattr(application, status_field) != "completed":
-            return redirect(route_name)
 
-    # All Section I steps complete — go to declaration/review.
-    return redirect("declaration")
+def _get_or_create_application(user):
+    """Return the user's application, creating one if absent."""
+    application = Application.objects.filter(applicant=user).first()
+
+    if not application:
+        application = Application.objects.create(applicant=user)
+
+    return application
+
+
+def _get_or_build(model, application):
+    """Return the existing section object or an unsaved instance."""
+    try:
+        return model.objects.get(application=application)
+    except model.DoesNotExist:
+        return model(application=application)
+
 
 def _build_timeline(application):
     current_index = STATUS_TO_STEP_INDEX.get(application.status, 0)
@@ -95,35 +114,18 @@ def _build_timeline(application):
     return [
         {
             "label": label,
-            "done": i < current_index,
-            "current": i == current_index,
+            "done": index < current_index,
+            "current": index == current_index,
         }
-        for i, label in enumerate(STATUS_TIMELINE_STEPS)
+        for index, label in enumerate(STATUS_TIMELINE_STEPS)
     ]
 
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-def _get_or_create_application(user):
-    """Return the user's application, creating one if absent."""
-    app = Application.objects.filter(applicant=user).first()
-
-    if not app:
-        app = Application.objects.create(applicant=user)
-
-    return app
-
-
-def _get_or_build(model, application):
-    """
-    Return the application's existing section row, or an UNSAVED instance
-    if none exists yet.
-    """
-    try:
-        return model.objects.get(application=application)
-    except model.DoesNotExist:
-        return model(application=application)
+def _guidance(title, items):
+    return {
+        "title": title,
+        "items": items,
+    }
 
 
 def _extract_json_image(request):
@@ -135,28 +137,27 @@ def _extract_json_image(request):
 
 
 def _compress_image(uploaded_file, max_dim=600):
-    """
-    Resize image so longest side <= max_dim and JPEG-compress it.
-    Returns (base64_string, content_type).
-    """
+    """Resize and JPEG-compress an uploaded image."""
     uploaded_file.seek(0)
 
-    img = Image.open(uploaded_file).convert("RGB")
-    img.thumbnail((max_dim, max_dim), Image.LANCZOS)
+    image = Image.open(uploaded_file).convert("RGB")
+    image.thumbnail((max_dim, max_dim), Image.LANCZOS)
 
-    buf = io.BytesIO()
-    img.save(buf, format="JPEG", quality=85, optimize=True)
+    buffer = io.BytesIO()
+    image.save(
+        buffer,
+        format="JPEG",
+        quality=85,
+        optimize=True,
+    )
 
-    encoded = base64.b64encode(buf.getvalue()).decode("ascii")
+    encoded = base64.b64encode(buffer.getvalue()).decode("ascii")
 
     return encoded, "image/jpeg"
 
 
 def _encode_file(uploaded_file):
-    """
-    Base64-encode an uploaded file as-is.
-    Returns (base64_string, content_type).
-    """
+    """Base64-encode an uploaded file."""
     uploaded_file.seek(0)
 
     encoded = base64.b64encode(uploaded_file.read()).decode("ascii")
@@ -165,14 +166,35 @@ def _encode_file(uploaded_file):
     return encoded, content_type
 
 
-# ---------------------------------------------------------------------------
-# Personal Information — Step 1
-# ---------------------------------------------------------------------------
+@login_required
+def continue_application(request):
+    application = _get_or_create_application(request.user)
+
+    for status_field, route_name in STEP_ROUTE_ORDER:
+        if getattr(application, status_field) != "completed":
+            return redirect(route_name)
+
+    return redirect("declaration")
+
+
 @login_required
 def step_personal_information(request):
     application = _get_or_create_application(request.user)
-
     personal_info = _get_or_build(PersonalInfo, application)
+
+    guidance = (
+        "Make sure your personal details match your official records and "
+        "review them carefully before continuing."
+    )
+
+    step_guidance = _guidance(
+        "Personal Information",
+        [
+            "Enter your details exactly as shown on your official records.",
+            "Complete all required fields.",
+            "Review your information carefully before continuing.",
+        ],
+    )
 
     return _step_personal(
         request,
@@ -181,8 +203,10 @@ def step_personal_information(request):
         PersonalInformationForm,
         "step_contact_address",
         "Personal Information",
-        "Upload a passport-size student photo. JPG or PNG files are accepted.",
+        guidance,
+        step_guidance,
     )
+
 
 def _step_personal(
     request,
@@ -192,6 +216,7 @@ def _step_personal(
     next_route,
     title,
     guidance,
+    step_guidance,
 ):
     locked = application.section_i_locked
 
@@ -203,20 +228,23 @@ def _step_personal(
 
     if not locked and request.method == "POST":
         uploaded_photo = request.FILES.get("student_photo")
+        is_valid = False
 
         if uploaded_photo:
             uploaded_photo.seek(0)
-            is_valid, error_message = validate_passport_image(uploaded_photo)
+
+            is_valid, error_message = validate_passport_image(
+                uploaded_photo
+            )
 
             if not is_valid:
                 form.add_error("student_photo", error_message)
             else:
                 encoded, content_type = _compress_image(uploaded_photo)
+
                 section_obj.student_photo = encoded
                 section_obj.student_photo_type = content_type
 
-                # Remove the uploaded file from Django's ImageField
-                # validation because the actual stored value is base64.
                 form.fields["student_photo"].required = False
 
                 if "student_photo" in form.files:
@@ -251,6 +279,7 @@ def _step_personal(
             "form": form,
             "title": title,
             "guidance": guidance,
+            "step_guidance": step_guidance,
             "locked": locked,
             "lock_message": (
                 "Your application has been submitted. Section I is now "
@@ -260,22 +289,20 @@ def _step_personal(
     )
 
 
-
-# ---------------------------------------------------------------------------
-# Photo validation API
-# ---------------------------------------------------------------------------
 @login_required
 @require_POST
 def validate_photo_api(request):
     cache_key = f"photo_ratelimit_{request.user.pk}"
-
     calls = cache.get(cache_key, 0)
 
     if calls >= 5:
         return JsonResponse(
             {
                 "valid": False,
-                "message": "Too many validation attempts. Please wait a moment.",
+                "message": (
+                    "Too many validation attempts. "
+                    "Please wait a moment."
+                ),
             },
             status=429,
         )
@@ -320,27 +347,6 @@ def validate_photo_api(request):
         )
 
 
-# ---------------------------------------------------------------------------
-# Section model mapping
-# ---------------------------------------------------------------------------
-SECTION_MODEL_MAP = {
-    "personal_info_status": (PersonalInfo, "personal_info"),
-    "contact_address_status": (ContactAddress, "contact_address"),
-    "academic_info_status": (AcademicInfo, "academic_info"),
-    "program_preference_status": (ProgramPreference, "program_preference"),
-    "admission_test_status": (AdmissionTest, "admission_test"),
-    "admission_scheme_status": (AdmissionScheme, "admission_scheme"),
-    "employment_status": (CurrentEmployment, "current_employment"),
-    "processing_fee_status": (ProcessingFee, "processing_fee"),
-    "referee_information_status": (RefereeInformation, "referee_information"),
-    "test_center_status": (TestCenter, "test_center"),
-    "application_form_status": (ApplicationForm, "application_form"),
-}
-
-
-# ---------------------------------------------------------------------------
-# Generic step handler
-# ---------------------------------------------------------------------------
 def _step(
     request,
     section_obj,
@@ -349,6 +355,7 @@ def _step(
     next_route,
     title,
     guidance,
+    step_guidance,
 ):
     application = section_obj.application
     locked = application.section_i_locked
@@ -362,6 +369,7 @@ def _step(
         updated = form.save(commit=False)
         updated.status = "completed"
         updated.save()
+
         return redirect(next_route)
 
     if locked:
@@ -377,6 +385,7 @@ def _step(
             "form": form,
             "title": title,
             "guidance": guidance,
+            "step_guidance": step_guidance,
             "locked": locked,
             "lock_message": (
                 "Your application has been submitted. Section I is now "
@@ -386,14 +395,25 @@ def _step(
     )
 
 
-# ---------------------------------------------------------------------------
-# Step 2 — Contact & Address
-# ---------------------------------------------------------------------------
 @login_required
 def step_contact_address(request):
     application = _get_or_create_application(request.user)
-
     contact_address = _get_or_build(ContactAddress, application)
+
+    guidance = (
+        "Enter a complete and accurate address for correspondence. If your "
+        "Mailing Address is the same as your Permanent Address, select Same "
+        "as permanent address."
+    )
+
+    step_guidance = _guidance(
+        "Contact & Addresses",
+        [
+            "Enter a complete and accurate correspondence address.",
+            "Select “Same as permanent address” if both addresses are identical.",
+            "Check your contact details before continuing.",
+        ],
+    )
 
     return _step(
         request,
@@ -401,19 +421,31 @@ def step_contact_address(request):
         ContactAddressForm,
         "contact_address_status",
         "step_academic_information",
-        "Contact & Address",
-        "Enter a current contact number and full address.",
+        "Contact & Addresses",
+        guidance,
+        step_guidance,
     )
 
 
-# ---------------------------------------------------------------------------
-# Step 3 — Academic Information
-# ---------------------------------------------------------------------------
 @login_required
 def step_academic_information(request):
     application = _get_or_create_application(request.user)
-
     academic_info = _get_or_build(AcademicInfo, application)
+
+    guidance = (
+        "Complete all required fields using information from your official "
+        "certificates or transcripts. If you have multiple certificates or "
+        "degrees, enter each one separately."
+    )
+
+    step_guidance = _guidance(
+        "Previous Education",
+        [
+            "Enter information from your official certificates or transcripts.",
+            "Complete all required fields.",
+            "Add each certificate or degree separately when applicable.",
+        ],
+    )
 
     return _step(
         request,
@@ -421,21 +453,33 @@ def step_academic_information(request):
         AcademicInformationForm,
         "academic_info_status",
         "step_program_preference",
-        "Academic Information",
-        "Enter your previous academic information.",
+        "Previous Education",
+        guidance,
+        step_guidance,
     )
 
 
-# ---------------------------------------------------------------------------
-# Step 4 — Program Preferences
-# ---------------------------------------------------------------------------
 @login_required
 def step_program_preference(request):
     application = _get_or_create_application(request.user)
-
     program_preference = _get_or_build(
         ProgramPreference,
         application,
+    )
+
+    guidance = (
+        "Review the available programs carefully and select the one you wish "
+        "to pursue. Make sure you meet its eligibility requirements before "
+        "continuing."
+    )
+
+    step_guidance = _guidance(
+        "Program Selection",
+        [
+            "Review the available programs carefully.",
+            "Select the program you wish to pursue.",
+            "Make sure you meet the program’s eligibility requirements.",
+        ],
     )
 
     return _step(
@@ -444,25 +488,36 @@ def step_program_preference(request):
         ProgramPreferenceForm,
         "program_preference_status",
         "step_admission_test",
-        "Program Preferences",
-        "Choose the program you're applying for.",
+        "Program Selection",
+        guidance,
+        step_guidance,
     )
 
 
-# ---------------------------------------------------------------------------
-# Step 5 — Admission Test
-# ---------------------------------------------------------------------------
 @login_required
 def step_admission_test(request):
     application = _get_or_create_application(request.user)
     locked = application.section_i_locked
-
     admission_test = _get_or_build(AdmissionTest, application)
 
-    title = "Admission Test"
+    title = "Entry Test"
+
     guidance = (
-        "If you've already qualified an entrance test, upload evidence "
-        "of your result."
+        "Complete all required fields marked with _. Candidates who have "
+        "already qualified the ETS GRE General or HEC ETC HAT Test are "
+        "exempted from the GIKI Admission Test. If you select "
+        "\"Already Qualified Entrance Test\", provide the required test "
+        "details and supporting evidence for verification."
+    )
+
+    step_guidance = _guidance(
+        "Entry Test",
+        [
+            "Complete all required fields marked with *.",
+            "Candidates who have already qualified the ETS GRE General or HEC ETC HAT Test are exempted from the GIKI Admission Test.",
+            "If you select “Already Qualified Entrance Test”, provide the required test details.",
+            "Upload the required supporting evidence for verification.",
+        ],
     )
 
     form = AdmissionTestForm(
@@ -501,6 +556,7 @@ def step_admission_test(request):
             "form": form,
             "title": title,
             "guidance": guidance,
+            "step_guidance": step_guidance,
             "locked": locked,
             "lock_message": (
                 "Your application has been submitted. Section I is now "
@@ -510,16 +566,22 @@ def step_admission_test(request):
     )
 
 
-# ---------------------------------------------------------------------------
-# Step 6 — Admission Scheme
-# ---------------------------------------------------------------------------
 @login_required
 def step_admission_scheme(request):
     application = _get_or_create_application(request.user)
+    admission_scheme = _get_or_build(AdmissionScheme, application)
 
-    admission_scheme = _get_or_build(
-        AdmissionScheme,
-        application,
+    guidance = (
+        "Indicate whether you are interested in the GAship or Day Scholar "
+        "scheme."
+    )
+
+    step_guidance = _guidance(
+        "Admission Scheme",
+        [
+            "Select the admission scheme that applies to you.",
+            "Choose GAship or Day Scholar according to your preference.",
+        ],
     )
 
     return _step(
@@ -529,20 +591,32 @@ def step_admission_scheme(request):
         "admission_scheme_status",
         "step_employment",
         "Admission Scheme",
-        "Let us know which admission scheme applies to you.",
+        guidance,
+        step_guidance,
     )
 
 
-# ---------------------------------------------------------------------------
-# Step 7 — Current Employment
-# ---------------------------------------------------------------------------
 @login_required
 def step_employment(request):
     application = _get_or_create_application(request.user)
-
     current_employment = _get_or_build(
         CurrentEmployment,
         application,
+    )
+
+    guidance = (
+        "Skip this step if it does not apply to you. Provide truthful and "
+        "accurate information; any misuse or false information may result "
+        "in cancellation of your application."
+    )
+
+    step_guidance = _guidance(
+        "Current Employment",
+        [
+            "Skip this section if it does not apply to you.",
+            "Provide truthful and accurate employment information.",
+            "False or misused information may result in cancellation of your application.",
+        ],
     )
 
     return _step(
@@ -550,21 +624,23 @@ def step_employment(request):
         current_employment,
         CurrentEmploymentForm,
         "employment_status",
-        "application_form",   # back to the original Section I flow
+        "application_form",
         "Current Employment",
-        "Tell us about your current employment, if any.",
+        guidance,
+        step_guidance,
     )
 
 
-# ---------------------------------------------------------------------------
-# Step 8 — Application Form
-# ---------------------------------------------------------------------------
 @login_required
 def application_form(request):
     application = _get_or_create_application(request.user)
     locked = application.section_i_locked
 
-    application_form_obj = _get_or_build(ApplicationForm, application)
+    application_form_obj = _get_or_build(
+        ApplicationForm,
+        application,
+    )
+
     form = ApplicationFormForm(
         request.POST or None,
         instance=application_form_obj,
@@ -595,8 +671,8 @@ def application_form(request):
             "progress_percent": int(
                 round(
                     sum(
-                        getattr(application, k) == "completed"
-                        for k in application.SECTION_I_KEYS
+                        getattr(application, key) == "completed"
+                        for key in application.SECTION_I_KEYS
                     )
                     / len(application.SECTION_I_KEYS)
                     * 100
@@ -604,21 +680,47 @@ def application_form(request):
             ),
             "is_ready_for_submission": application.is_ready_for_submission,
             "locked": locked,
+            "step_guidance": _guidance(
+                "Form Submissions",
+                [
+                    "Review your complete application before submitting.",
+                    "After submission, your application cannot be updated or changed.",
+                    "Print the submitted form.",
+                    "Courier the form with all required documents before the closing date.",
+                ],
+            ),
         },
     )
 
-# ---------------------------------------------------------------------------
-# Step 9 (Section II) — Processing Fee
-# ---------------------------------------------------------------------------
+
 @login_required
 def step_processing_fee(request):
     application = _get_or_create_application(request.user)
-    processing_fee = _get_or_build(ProcessingFee, application)
+    processing_fee = _get_or_build(
+        ProcessingFee,
+        application,
+    )
 
     form = ProcessingFeeForm(
         request.POST or None,
         request.FILES or None,
         instance=processing_fee,
+    )
+
+    guidance = (
+        "Complete the fee payment using one of the available payment methods. "
+        "Enter your payment details accurately, attach the payment proof, and "
+        "keep the original receipt for your records."
+    )
+
+    step_guidance = _guidance(
+        "Processing Fee",
+        [
+            "Select one of the available payment methods.",
+            "Enter your payment details accurately.",
+            "Attach your payment proof.",
+            "Keep the original receipt for your records.",
+        ],
     )
 
     if request.method == "POST" and form.is_valid():
@@ -646,26 +748,41 @@ def step_processing_fee(request):
             "application": application,
             "form": form,
             "title": "Processing Fee",
-            "guidance": (
-                "Enter your processing fee payment details and attach "
-                "proof of payment."
-            ),
+            "guidance": guidance,
+            "step_guidance": step_guidance,
         },
     )
 
 
-# ---------------------------------------------------------------------------
-# Step 10 (Section II) — References & LOR
-# ---------------------------------------------------------------------------
 @login_required
 def step_referee_information(request):
     application = _get_or_create_application(request.user)
-    referee_information = _get_or_build(RefereeInformation, application)
+    referee_information = _get_or_build(
+        RefereeInformation,
+        application,
+    )
 
     form = RefereeInformationForm(
         request.POST or None,
         request.FILES or None,
         instance=referee_information,
+    )
+
+    guidance = (
+        "Complete all required fields and upload two recommendation letters "
+        "in an accepted format. Review your information and contact details "
+        "carefully before submitting, as incomplete or incorrect information "
+        "may result in rejection."
+    )
+
+    step_guidance = _guidance(
+        "Submission Guidelines",
+        [
+            "Complete all required fields.",
+            "Upload two recommendation letters in an accepted format.",
+            "Check your information and contact details carefully.",
+            "Incomplete or incorrect information may result in rejection.",
+        ],
     )
 
     if request.method == "POST" and form.is_valid():
@@ -692,22 +809,33 @@ def step_referee_information(request):
             "active_nav": "application",
             "application": application,
             "form": form,
-            "title": "References & LOR",
-            "guidance": (
-                "Provide your referee's details and upload their signed "
-                "letter of recommendation."
-            ),
+            "title": "Submission Guidelines",
+            "guidance": guidance,
+            "step_guidance": step_guidance,
         },
     )
 
 
-# ---------------------------------------------------------------------------
-# Step 11 (Section III) — Test Center
-# ---------------------------------------------------------------------------
 @login_required
 def step_test_center(request):
     application = _get_or_create_application(request.user)
-    test_center = _get_or_build(TestCenter, application)
+    test_center = _get_or_build(
+        TestCenter,
+        application,
+    )
+
+    guidance = (
+        "Review your assigned test center details carefully and confirm that "
+        "the information is correct before continuing."
+    )
+
+    step_guidance = _guidance(
+        "Test Center",
+        [
+            "Review your assigned test center carefully.",
+            "Confirm that the information is correct before continuing.",
+        ],
+    )
 
     form = TestCenterForm(
         request.POST or None,
@@ -718,6 +846,7 @@ def step_test_center(request):
         updated = form.save(commit=False)
         updated.status = "completed"
         updated.save()
+
         return redirect("application_status")
 
     return render(
@@ -728,17 +857,30 @@ def step_test_center(request):
             "application": application,
             "form": form,
             "title": "Test Center",
-            "guidance": "Confirm your assigned test center details.",
+            "guidance": guidance,
+            "step_guidance": step_guidance,
         },
     )
 
-# ---------------------------------------------------------------------------
-# Declaration
-# ---------------------------------------------------------------------------
+
 @login_required
 def declaration(request):
     application = _get_or_create_application(request.user)
     locked = application.section_i_locked
+
+    guidance = (
+        "Read the declaration carefully and make sure your application "
+        "information is complete and accurate before accepting it."
+    )
+
+    step_guidance = _guidance(
+        "Declaration",
+        [
+            "Read the declaration carefully.",
+            "Make sure your application information is complete and accurate.",
+            "Accept the declaration only after reviewing your information.",
+        ],
+    )
 
     form = DeclarationForm(
         request.POST or None,
@@ -761,10 +903,8 @@ def declaration(request):
             "application": application,
             "form": form,
             "title": "Declaration",
-            "guidance": (
-                "Please review and accept the declaration to "
-                "continue to your application review."
-            ),
+            "guidance": guidance,
+            "step_guidance": step_guidance,
             "locked": locked,
             "lock_message": (
                 "Your application has been submitted. Section I is now "
@@ -774,9 +914,6 @@ def declaration(request):
     )
 
 
-# ---------------------------------------------------------------------------
-# Review
-# ---------------------------------------------------------------------------
 @login_required
 def review_application(request):
     application = _get_or_create_application(request.user)
@@ -791,9 +928,6 @@ def review_application(request):
     )
 
 
-# ---------------------------------------------------------------------------
-# Submit Application
-# ---------------------------------------------------------------------------
 @login_required
 def submit_application(request):
     application = _get_or_create_application(request.user)
@@ -803,9 +937,19 @@ def submit_application(request):
         and application.is_ready_for_submission
         and application.declaration_accepted
     ):
+        already_submitted = application.status == "submitted"
+
         application.status = "submitted"
         application.submitted_at = timezone.now()
         application.save()
+
+        if not already_submitted:
+            notify(
+                request.user,
+                "Application Submitted",
+                "Your application has been submitted successfully and is now locked for review.",
+                "success",
+            )
 
         return render(
             request,
@@ -820,9 +964,6 @@ def submit_application(request):
     return redirect("review_application")
 
 
-# ---------------------------------------------------------------------------
-# Reset Application
-# ---------------------------------------------------------------------------
 @login_required
 def reset_application(request):
     application = _get_or_create_application(request.user)
@@ -868,9 +1009,6 @@ def reset_application(request):
     return redirect("my_application")
 
 
-# ---------------------------------------------------------------------------
-# Application Status
-# ---------------------------------------------------------------------------
 @login_required
 def application_status(request):
     application = _get_or_create_application(request.user)

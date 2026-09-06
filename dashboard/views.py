@@ -1,10 +1,12 @@
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from applications.models import Application
 
-from .models import AdmissionCycle, Notice
+from .models import AdmissionCycle, Notice, Notification
 
 STATUS_TIMELINE_STEPS = [
     "Registration",
@@ -73,8 +75,6 @@ def dashboard(request):
         "applicant_initials": "".join(
             [n[0] for n in (request.user.get_full_name() or "A A").split()[:2]]
         ).upper(),
-        "notification_count": notices_qs.count(),
-
         "application_deadline": important_dates[0]["value"] if important_dates else "To be announced",
         "progress_percent": application.progress_percent,
         "sections_completed": application.sections_completed_count,
@@ -99,3 +99,10 @@ def dashboard(request):
 @login_required
 def help_contact(request):
     return render(request, "dashboard/help.html", {"active_nav": "help"})
+
+
+@login_required
+@require_POST
+def mark_notification_read(request, notification_id):
+    Notification.objects.filter(pk=notification_id, user=request.user).update(is_read=True)
+    return JsonResponse({"ok": True})
