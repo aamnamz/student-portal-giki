@@ -97,3 +97,24 @@ def change_password_view(request):
         "success": success,
         "error": error,
     })
+
+
+@login_required
+def select_program_view(request):
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+
+    if profile.program:
+        return redirect("dashboard")
+
+    error = None
+    if request.method == "POST":
+        selected_program = request.POST.get("program", "").strip().upper()
+        if selected_program in ("MS", "PHD"):
+            profile.program = selected_program
+            profile.save(update_fields=["program"])
+            messages.success(request, f"{selected_program} program selected successfully.")
+            return redirect("dashboard")
+        else:
+            error = "Please select either MS or PhD to continue."
+
+    return render(request, "accounts/select_program.html", {"error": error})

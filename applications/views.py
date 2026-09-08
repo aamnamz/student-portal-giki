@@ -369,6 +369,12 @@ def _step(
 
     if not locked and request.method == "POST" and form.is_valid():
         updated = form.save(commit=False)
+        if isinstance(updated, ProgramPreference):
+            user_profile = getattr(request.user, "profile", None)
+            if user_profile and user_profile.program:
+                updated.degree_level = user_profile.program.lower()
+            else:
+                updated.degree_level = "ms"
         updated.status = "completed"
         updated.save()
 

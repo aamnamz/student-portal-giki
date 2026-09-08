@@ -407,7 +407,7 @@ class AcademicInformationForm(StyledFormMixin, forms.ModelForm):
 class ProgramPreferenceForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = ProgramPreference
-        fields = ["degree_level", "discipline"]
+        fields = ["discipline"]
 
 
 # ---------------------------------------------------------------------------

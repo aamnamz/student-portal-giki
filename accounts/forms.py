@@ -58,7 +58,8 @@ class SignUpForm(StyledFormMixin, UserCreationForm):
             user.save()
             profile, _ = Profile.objects.get_or_create(user=user)
             profile.phone = self.cleaned_data.get("phone_number", "")
-            profile.save(update_fields=["phone"])
+            profile.program = self.cleaned_data.get("program", "")
+            profile.save(update_fields=["phone", "program"])
         return user
 
 

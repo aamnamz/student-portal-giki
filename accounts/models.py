@@ -40,7 +40,13 @@ class Profile(models.Model):
     User profile containing additional user metadata.
     Keeps the auth system clean by separating profile data.
     """
+    PROGRAM_CHOICES = [
+        ("MS", "MS"),
+        ("PHD", "PhD"),
+    ]
+
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name="profile")
+    program = models.CharField(max_length=10, choices=PROGRAM_CHOICES, blank=True, default="")
     phone = models.CharField(max_length=12, validators=[pakistani_phone], blank=True)
     profile_picture = models.ImageField(upload_to="profile_pictures/", blank=True, null=True)
 
