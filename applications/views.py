@@ -503,11 +503,7 @@ def step_admission_test(request):
     title = "Entry Test"
 
     guidance = (
-        "Complete all required fields marked with _. Candidates who have "
-        "already qualified the ETS GRE General or HEC ETC HAT Test are "
-        "exempted from the GIKI Admission Test. If you select "
-        "\"Already Qualified Entrance Test\", provide the required test "
-        "details and supporting evidence for verification."
+        "Complete all required fields marked with * "
     )
 
     step_guidance = _guidance(
@@ -605,9 +601,7 @@ def step_employment(request):
     )
 
     guidance = (
-        "Skip this step if it does not apply to you. Provide truthful and "
-        "accurate information; any misuse or false information may result "
-        "in cancellation of your application."
+        "Skip this step if it does not apply to you."
     )
 
     step_guidance = _guidance(
@@ -708,9 +702,7 @@ def step_processing_fee(request):
     )
 
     guidance = (
-        "Complete the fee payment using one of the available payment methods. "
-        "Enter your payment details accurately, attach the payment proof, and "
-        "keep the original receipt for your records."
+        "Enter your payment details accurately."
     )
 
     step_guidance = _guidance(
@@ -769,10 +761,7 @@ def step_referee_information(request):
     )
 
     guidance = (
-        "Complete all required fields and upload two recommendation letters "
-        "in an accepted format. Review your information and contact details "
-        "carefully before submitting, as incomplete or incorrect information "
-        "may result in rejection."
+        "Complete all required fields"
     )
 
     step_guidance = _guidance(
