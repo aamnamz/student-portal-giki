@@ -257,4 +257,150 @@ if (helpButton && helpPopover) {
       if (current >= target) clearInterval(timer);
     }, 20);
   });
+
+  // ---- Sidebar section collapse: per-section state persistence ----
+  // Only active on desktop (>860px). On mobile the sections are always
+  // expanded and the toggle buttons are visually disabled.
+  var SECTION_KEY_PREFIX = 'giki_sec_';
+  var sectionPanels = document.querySelectorAll('.sidebar-nav .application-subnav[id]');
+
+  function isSectionCollapseActive() {
+    return !mobileQuery.matches;
+  }
+
+  // Restore saved states before Bootstrap has a chance to animate anything.
+  // We manipulate classList directly so there's no flicker.
+  sectionPanels.forEach(function (panel) {
+    var id = panel.id;
+    try {
+      var saved = localStorage.getItem(SECTION_KEY_PREFIX + id);
+      if (saved === '0' && isSectionCollapseActive()) {
+        // Collapsed: remove Bootstrap's 'show' so it starts hidden, no animation.
+        panel.classList.remove('show');
+        // Sync aria-expanded on the paired button.
+        var btn = document.querySelector('[data-bs-target="#' + id + '"]');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+      }
+    } catch (e) {}
+  });
+
+  // Listen for Bootstrap collapse events to persist state.
+  sectionPanels.forEach(function (panel) {
+    panel.addEventListener('hide.bs.collapse', function () {
+      if (!isSectionCollapseActive()) return;
+      try { localStorage.setItem(SECTION_KEY_PREFIX + panel.id, '0'); } catch (e) {}
+    });
+    panel.addEventListener('show.bs.collapse', function () {
+      try { localStorage.setItem(SECTION_KEY_PREFIX + panel.id, '1'); } catch (e) {}
+    });
+  });
+
+  // When crossing the mobile/desktop breakpoint, force all sections visible
+  // on mobile (scrolling is fine there), and restore saved states on desktop.
+  var prevBreakpointMobile = mobileQuery.matches;
+  function handleSectionBreakpointChange() {
+    var nowMobile = mobileQuery.matches;
+    if (nowMobile === prevBreakpointMobile) return;
+    prevBreakpointMobile = nowMobile;
+    sectionPanels.forEach(function (panel) {
+      var id = panel.id;
+      var btn = document.querySelector('[data-bs-target="#' + id + '"]');
+      if (nowMobile) {
+        // Mobile: force open without animation.
+        panel.classList.add('show');
+        if (btn) btn.setAttribute('aria-expanded', 'true');
+      } else {
+        // Desktop: restore saved state.
+        try {
+          var saved = localStorage.getItem(SECTION_KEY_PREFIX + id);
+          var shouldShow = saved !== '0';
+          if (shouldShow) {
+            panel.classList.add('show');
+            if (btn) btn.setAttribute('aria-expanded', 'true');
+          } else {
+            panel.classList.remove('show');
+            if (btn) btn.setAttribute('aria-expanded', 'false');
+          }
+        } catch (e) {}
+      }
+    });
+  }
+  if (typeof mobileQuery.addEventListener === 'function') {
+    mobileQuery.addEventListener('change', handleSectionBreakpointChange);
+  } else if (typeof mobileQuery.addListener === 'function') {
+    mobileQuery.addListener(handleSectionBreakpointChange);
+  }
+
+  // ---- Toast Notification Utility ----
+  window.showSuccessToast = function (message) {
+    message = message || 'Saved successfully';
+    var container = document.getElementById('toastContainer');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'toastContainer';
+      container.className = 'toast-container position-fixed top-0 end-0 p-3';
+      container.style.zIndex = '1090';
+      container.setAttribute('aria-live', 'polite');
+      container.setAttribute('aria-atomic', 'true');
+      document.body.appendChild(container);
+    }
+
+    var toastEl = document.createElement('div');
+    toastEl.className = 'toast custom-success-toast align-items-center mb-2';
+    toastEl.setAttribute('role', 'alert');
+    toastEl.setAttribute('aria-live', 'polite');
+    toastEl.setAttribute('aria-atomic', 'true');
+    toastEl.setAttribute('data-bs-autohide', 'true');
+    toastEl.setAttribute('data-bs-delay', '3500');
+
+    toastEl.innerHTML =
+      '<div class="d-flex align-items-center justify-content-between p-3">' +
+        '<div class="d-flex align-items-center gap-2">' +
+          '<svg class="toast-check-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+            '<polyline points="20 6 9 17 4 12"></polyline>' +
+          '</svg>' +
+          '<span class="toast-message">' + message + '</span>' +
+        '</div>' +
+        '<button type="button" class="btn-close ms-3" data-bs-dismiss="toast" aria-label="Close"></button>' +
+      '</div>';
+
+    container.appendChild(toastEl);
+
+    if (window.bootstrap && window.bootstrap.Toast) {
+      var bsToast = window.bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 3500, autohide: true });
+      bsToast.show();
+    } else {
+      toastEl.classList.add('show');
+      setTimeout(function () {
+        toastEl.remove();
+      }, 3500);
+    }
+
+    toastEl.addEventListener('hidden.bs.toast', function () {
+      toastEl.remove();
+    });
+  };
+
+  // Initialize any server-rendered toasts or pending session toasts
+  document.querySelectorAll('#toastContainer .toast').forEach(function (toastEl) {
+    if (window.bootstrap && window.bootstrap.Toast) {
+      var bsToast = window.bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 3500, autohide: true });
+      bsToast.show();
+    } else {
+      toastEl.classList.add('show');
+    }
+    toastEl.addEventListener('hidden.bs.toast', function () {
+      toastEl.remove();
+    });
+  });
+
+  try {
+    var pendingMsg = sessionStorage.getItem('pending_success_toast');
+    if (pendingMsg) {
+      sessionStorage.removeItem('pending_success_toast');
+      window.showSuccessToast(pendingMsg);
+    }
+  } catch (e) {}
 });
+
+

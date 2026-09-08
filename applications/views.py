@@ -2,6 +2,7 @@ import base64
 import io
 import json
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.http import JsonResponse
@@ -264,6 +265,7 @@ def _step_personal(
             application.updated_at = timezone.now()
             application.save(update_fields=["updated_at"])
 
+            messages.success(request, "Personal Information saved successfully.")
             return redirect(next_route)
 
     if locked:
@@ -370,6 +372,7 @@ def _step(
         updated.status = "completed"
         updated.save()
 
+        messages.success(request, f"{title} saved successfully.")
         return redirect(next_route)
 
     if locked:
@@ -537,6 +540,7 @@ def step_admission_test(request):
         application.updated_at = timezone.now()
         application.save(update_fields=["updated_at"])
 
+        messages.success(request, "Admission Test details saved successfully.")
         return redirect("step_admission_scheme")
 
     if locked:
@@ -648,6 +652,7 @@ def application_form(request):
         application.updated_at = timezone.now()
         application.save(update_fields=["updated_at"])
 
+        messages.success(request, "Admission Scheme saved successfully.")
         return redirect("declaration")
 
     if locked:
@@ -730,6 +735,7 @@ def step_processing_fee(request):
         application.updated_at = timezone.now()
         application.save(update_fields=["updated_at"])
 
+        messages.success(request, "Processing Fee details saved successfully.")
         return redirect("application_status")
 
     return render(
@@ -789,6 +795,7 @@ def step_referee_information(request):
         application.updated_at = timezone.now()
         application.save(update_fields=["updated_at"])
 
+        messages.success(request, "Reference details saved successfully.")
         return redirect("application_status")
 
     return render(
@@ -836,6 +843,7 @@ def step_test_center(request):
         updated.status = "completed"
         updated.save()
 
+        messages.success(request, "Test Center preference saved successfully.")
         return redirect("application_status")
 
     return render(
@@ -878,6 +886,7 @@ def declaration(request):
 
     if not locked and request.method == "POST" and form.is_valid():
         form.save()
+        messages.success(request, "Declaration saved successfully.")
         return redirect("review_application")
 
     if locked:
@@ -907,12 +916,16 @@ def declaration(request):
 def review_application(request):
     application = _get_or_create_application(request.user)
 
+    if not application.is_ready_for_submission:
+        return redirect("continue_application")
+
     return render(
         request,
         "applications/review.html",
         {
             "active_nav": "application",
             "application": application,
+            "checklist": application.checklist,
         },
     )
 
@@ -939,6 +952,7 @@ def submit_application(request):
                 "Your application has been submitted successfully and is now locked for review.",
                 "success",
             )
+            messages.success(request, "Application submitted successfully.")
 
         return render(
             request,

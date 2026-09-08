@@ -1,4 +1,5 @@
 import base64
+from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
@@ -55,6 +56,7 @@ def my_profile(request):
             personal_info.student_photo = base64.b64encode(uploaded_photo.read()).decode("ascii")
             personal_info.student_photo_type = uploaded_photo.content_type or "image/jpeg"
             personal_info.save(update_fields=["student_photo", "student_photo_type"])
+            messages.success(request, "Student photo updated successfully.")
             return redirect("accounts:my_profile")
         photo_error = error_message
     
@@ -87,6 +89,7 @@ def change_password_view(request):
             request.user.set_password(new_password)
             request.user.save()
             update_session_auth_hash(request, request.user)
+            messages.success(request, "Password changed successfully.")
             success = True
 
     return render(request, "accounts/change_password.html", {

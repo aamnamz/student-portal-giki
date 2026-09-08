@@ -355,9 +355,11 @@ button {
   margin: 0 12px 8px;
   background: rgba(255, 255, 255, 0.08);
   overflow: hidden;
+  pointer-events: none; /* can't collapse sections when in icon-rail mode */
 }
 
-.portal.sidebar-collapsed .application-section-title span {
+.portal.sidebar-collapsed .application-section-title span,
+.portal.sidebar-collapsed .application-section-title .section-chevron {
   display: none;
 }
 
@@ -371,6 +373,11 @@ button {
   display: none;
 }
 
+/* In icon-rail mode all section panels must stay visible regardless of collapse state */
+.portal.sidebar-collapsed .application-subnav.collapse {
+  display: flex !important;
+  height: auto !important;
+}
 /* ============ TOP NAV ============ */
 .main {
   flex: 1;
@@ -2494,3 +2501,138 @@ input[type="radio"] {
     transition: none;
   }
 }
+
+/* ============ SIDEBAR SECTION COLLAPSE ============ */
+
+/* Reset <button> chrome and match existing div layout */
+button.application-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 12px 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--s-400);
+  text-align: left;
+  border-radius: var(--radius-sm);
+  transition: color .15s ease;
+  /* keep the existing top spacing provided by .application-section margin */
+}
+
+button.application-section-title:hover {
+  color: var(--s-300);
+}
+
+button.application-section-title:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Chevron icon */
+.section-chevron {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  transition: transform .2s ease;
+}
+
+/* Rotate chevron when section is open (aria-expanded=true) */
+button.application-section-title[aria-expanded="true"] .section-chevron {
+  transform: rotate(0deg);
+}
+
+button.application-section-title[aria-expanded="false"] .section-chevron {
+  transform: rotate(-90deg);
+}
+
+/* Ensure Bootstrap's collapse panel is a flex column (matching original .application-subnav) */
+/* NOTE: .collapse alone = hidden (display:none) — don't override that. */
+/* Only restore flex when Bootstrap has made it visible (.show) or is animating (.collapsing). */
+.application-subnav.collapse.show {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* .collapsing is added during the animation; keep flex so items don't reflow */
+.application-subnav.collapsing {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* ---- Mobile (≤860px): disable section collapse, always show panels ---- */
+@media (max-width: 860px) {
+  button.application-section-title {
+    pointer-events: none; /* sections not collapsible on mobile */
+    cursor: default;
+  }
+
+  button.application-section-title .section-chevron {
+    display: none; /* hide chevron — no collapse available on mobile */
+  }
+
+  /* Force panels open; JS also handles this on breakpoint change */
+  .application-subnav.collapse:not(.show) {
+    display: flex !important;
+    height: auto !important;
+  }
+}
+
+/* ---- Reduced motion: skip the chevron rotate transition ---- */
+@media (prefers-reduced-motion: reduce) {
+  .section-chevron {
+    transition: none;
+  }
+}
+
+/* ============ TOAST NOTIFICATIONS ============ */
+.toast-container {
+  z-index: 1090;
+}
+
+.custom-success-toast {
+  background-color: #ffffff !important;
+  border: 1.5px solid var(--ok, #16a34a) !important;
+  border-radius: var(--radius-md, 12px) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
+  color: var(--s-900, #070F2B) !important;
+  min-width: 260px;
+  max-width: 360px;
+}
+
+.custom-success-toast .toast-check-icon {
+  color: var(--ok, #16a34a);
+  flex-shrink: 0;
+}
+
+.custom-success-toast .toast-message {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--s-900, #070F2B);
+}
+
+.custom-success-toast .btn-close {
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+.custom-success-toast .btn-close:hover {
+  opacity: 1;
+}
+
+@media (max-width: 576px) {
+  .toast-container {
+    padding: 12px !important;
+    right: 0 !important;
+    left: auto !important;
+    max-width: calc(100vw - 24px);
+  }
+}
+

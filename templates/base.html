@@ -50,8 +50,15 @@
         </a>
 
         <div class="application-section">
-          <div class="application-section-title"><span>Section I</span></div>
-          <div class="application-subnav open">
+          <button class="application-section-title" type="button"
+            data-bs-toggle="collapse" data-bs-target="#sidebarSec1"
+            aria-expanded="true" aria-controls="sidebarSec1">
+            <span>Section I</span>
+            <svg class="section-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+              <path d="M6 9l6 6 6-6"/>
+            </svg>
+          </button>
+          <div class="application-subnav collapse show" id="sidebarSec1">
             <a href="{% url 'step_personal_information' %}"
               class="subnav-item {% if request.resolver_match.url_name == 'step_personal_information' %}active{% endif %}"
               data-tooltip="Personal Information">
@@ -133,8 +140,15 @@
         </div>
 
         <div class="application-section">
-          <div class="application-section-title"><span>Section II</span></div>
-          <div class="application-subnav open">
+          <button class="application-section-title" type="button"
+            data-bs-toggle="collapse" data-bs-target="#sidebarSec2"
+            aria-expanded="true" aria-controls="sidebarSec2">
+            <span>Section II</span>
+            <svg class="section-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+              <path d="M6 9l6 6 6-6"/>
+            </svg>
+          </button>
+          <div class="application-subnav collapse show" id="sidebarSec2">
             <a href="{% url 'step_processing_fee' %}"
               class="subnav-item {% if request.resolver_match.url_name == 'step_processing_fee' %}active{% endif %}"
               data-tooltip="Processing Fee">
@@ -158,8 +172,15 @@
         </div>
 
         <div class="application-section">
-          <div class="application-section-title"><span>Section III</span></div>
-          <div class="application-subnav open">
+          <button class="application-section-title" type="button"
+            data-bs-toggle="collapse" data-bs-target="#sidebarSec3"
+            aria-expanded="true" aria-controls="sidebarSec3">
+            <span>Section III</span>
+            <svg class="section-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+              <path d="M6 9l6 6 6-6"/>
+            </svg>
+          </button>
+          <div class="application-subnav collapse show" id="sidebarSec3">
             <a href="{% url 'step_test_center' %}"
               class="subnav-item {% if request.resolver_match.url_name == 'step_test_center' %}active{% endif %}"
               data-tooltip="Test Center">
@@ -311,12 +332,30 @@
     </section>
   </div>
   {% endif %}
+  <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1090;" aria-live="polite" aria-atomic="true">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="toast custom-success-toast align-items-center mb-2" role="alert" aria-live="polite" aria-atomic="true" data-bs-autohide="true" data-bs-delay="3500">
+          <div class="d-flex align-items-center justify-content-between p-3">
+            <div class="d-flex align-items-center gap-2">
+              <svg class="toast-check-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span class="toast-message">{{ message }}</span>
+            </div>
+            <button type="button" class="btn-close ms-3" data-bs-dismiss="toast" aria-label="Close"></button>
+          </div>
+        </div>
+      {% endfor %}
+    {% endif %}
+  </div>
   <div class="page-loader" id="pageLoader" aria-live="polite" aria-label="Loading" hidden>
     <div class="page-loader-card">
       <img class="giki-loader" src="{% static 'dashboard/images/giki.png' %}" alt="">
       <span>Processing, please wait…</span>
     </div>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
   <script src="{% static 'dashboard/js/dashboard.js' %}"></script>
   {% block extra_scripts %}{% endblock %}
 </body>
