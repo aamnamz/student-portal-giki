@@ -25,11 +25,11 @@ class AcademicInfoInline(admin.TabularInline):
     fields = ("status", "degree_certificate", "board_university", "passing_year")
 
 
-
 @admin.register(Application)
 class ApplicationAdmin(admin.ModelAdmin):
-    list_display = ("applicant", "status", "progress_percent", "sections_completed_count", "updated_at")
-    list_filter = ("status",)
+    list_display = ("applicant", "status", "progress_percent", "sections_completed_count", "updated_at", "test_completed", "interview_attended")
+    list_editable = ("test_completed", "interview_attended")
+    list_filter = ("status", "test_completed", "interview_attended")
     search_fields = ("applicant__username", "applicant__first_name", "applicant__last_name")
     readonly_fields = ("progress_percent", "sections_completed_count", "created_at", "updated_at")
     inlines = [PersonalInfoInline, ContactAddressInline, AcademicInfoInline]
@@ -37,6 +37,7 @@ class ApplicationAdmin(admin.ModelAdmin):
         ("Status", {"fields": ("applicant", "status", "declaration_accepted")}),
         ("Progress", {"fields": ("progress_percent", "sections_completed_count")}),
         ("Timestamps", {"fields": ("submitted_at", "created_at", "updated_at")}),
+        ("Process Tracking", {"fields": ("test_completed", "interview_attended")}),
     )
 
 

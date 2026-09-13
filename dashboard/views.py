@@ -1,5 +1,14 @@
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+
+import json
+from pathlib import Path
+
+from django.conf import settings
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
+
+from .models import FCMDeviceToken
+
 from django.shortcuts import render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -43,12 +52,17 @@ def dashboard(request):
     important_dates = []
     if cycle:
         date_fields = [
-            ("Application Deadline", cycle.application_deadline, True),
-            ("Entry Test Date", cycle.entry_test_date, False),
-            ("Interview Date", cycle.interview_date, False),
-            ("Admission Decision Date", cycle.decision_date, False),
+            ("Application Deadline", cycle.application_deadline, True, True),
+            ("Entry Test Date", cycle.entry_test_date, False,
+             application.status in ("submitted", "under_review", "action_required") and not application.test_completed),
+            ("Interview Date", cycle.interview_date, False,
+             application.test_completed and not application.interview_attended),
+            ("Admission Decision Date", cycle.decision_date, False,
+             application.interview_attended),
         ]
-        for label, value, urgent in date_fields:
+        for label, value, urgent, visible in date_fields:
+            if not visible:
+                continue
             important_dates.append({
                 "label": label,
                 "value": value.strftime("%B %d, %Y") if value else "To be announced",
@@ -106,3 +120,52 @@ def help_contact(request):
 def mark_notification_read(request, notification_id):
     Notification.objects.filter(pk=notification_id, user=request.user).update(is_read=True)
     return JsonResponse({"ok": True})
+
+
+@login_required
+@require_POST
+def clear_all_notifications(request):
+    Notification.objects.filter(user=request.user).delete()
+    return JsonResponse({"ok": True})
+
+
+@login_required
+@require_POST
+def register_fcm_token(request):
+    try:
+        payload = json.loads(request.body)
+    except (json.JSONDecodeError, TypeError):
+        return HttpResponseBadRequest("Invalid JSON")
+
+    token = payload.get("token", "").strip()
+    device_type = payload.get("device_type", "web")
+    if not token:
+        return HttpResponseBadRequest("Missing token")
+
+    FCMDeviceToken.objects.update_or_create(
+        token=token,
+        defaults={"user": request.user, "device_type": device_type},
+    )
+    return JsonResponse({"ok": True})
+
+
+@login_required
+@require_POST
+def unregister_fcm_token(request):
+    try:
+        payload = json.loads(request.body)
+    except (json.JSONDecodeError, TypeError):
+        return HttpResponseBadRequest("Invalid JSON")
+
+    token = payload.get("token", "").strip()
+    if not token:
+        return HttpResponseBadRequest("Missing token")
+
+    FCMDeviceToken.objects.filter(token=token, user=request.user).delete()
+    return JsonResponse({"ok": True})
+
+
+def firebase_messaging_sw_view(request):
+    sw_path = Path(settings.BASE_DIR) / "firebase-messaging-sw.js"
+    content = sw_path.read_text(encoding="utf-8")
+    return HttpResponse(content, content_type="application/javascript")

@@ -407,7 +407,14 @@ class Application(models.Model):
     )
 
     declaration_accepted = models.BooleanField(default=False)
-
+    test_completed = models.BooleanField(
+        default=False,
+        help_text="Marked true once the applicant has taken the entry test.",
+    )
+    interview_attended = models.BooleanField(
+        default=False,
+        help_text="Marked true once the applicant has attended their interview.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     submitted_at = models.DateTimeField(null=True, blank=True)

@@ -2,6 +2,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+from dashboard import views
 from allauth.socialaccount.providers.google.views import oauth2_callback as google_oauth2_callback
 
 urlpatterns = [
@@ -11,6 +12,7 @@ urlpatterns = [
     path("accounts/", include("accounts.urls")),
     path("accounts/", include("allauth.urls")),
     path("auth/callback/google", google_oauth2_callback, name="google_callback"),
+    path("firebase-messaging-sw.js", views.firebase_messaging_sw_view, name="firebase_messaging_sw"),
 ]
 
 if settings.DEBUG:

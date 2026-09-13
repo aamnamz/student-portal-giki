@@ -187,6 +187,19 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
+  document.getElementById('clearAllNotifications')?.addEventListener('click', function () {
+    const url = this.dataset.clearUrl;
+    fetch(url, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': getCookie('csrftoken') },
+    }).then((response) => {
+      if (response.ok) {
+        document.getElementById('notificationDropdown').innerHTML =
+          '<div class="notification-empty">No new notifications</div>';
+        document.querySelector('.badge-dot')?.remove();
+      }
+    });
+  });
 
 var helpButton = document.getElementById('stepHelpButton');
 var helpPopover = document.getElementById('stepHelpPopover');

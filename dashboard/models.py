@@ -79,3 +79,18 @@ def notify(user, title, message="", level="info", link=""):
         level=level,
         link=link,
     )
+
+
+class FCMDeviceToken(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="fcm_tokens",
+    )
+    token = models.CharField(max_length=500, unique=True, db_index=True)
+    device_type = models.CharField(max_length=50, default="web")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user} ({self.device_type})"

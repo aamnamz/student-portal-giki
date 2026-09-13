@@ -29,6 +29,10 @@ SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-#r0_(r(!hkjlyp0p@puoy7-ye*
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h.strip()]
 
+# Firebase Cloud Messaging
+FCM_VAPID_KEY = os.getenv("FCM_VAPID_KEY", "")
+FIREBASE_CREDENTIALS_PATH = str(BASE_DIR / os.getenv("FIREBASE_CREDENTIALS_PATH", ""))
+
 # Custom user model
 AUTH_USER_MODEL = "accounts.CustomUser"
 
