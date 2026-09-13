@@ -2221,6 +2221,49 @@ input[type="radio"] {
   -webkit-overflow-scrolling: touch;
 }
 
+
+
+/* ---- Change Password page ---- */
+.form-card .field input[type="password"] {
+  letter-spacing: 0.03em;
+}
+
+.password-match-hint {
+  margin-top: -8px;
+  font-size: 12px;
+  color: var(--s-500);
+}
+
+.password-match-hint.match {
+  color: #198754;
+}
+
+.password-match-hint.mismatch {
+  color: var(--danger);
+}
+
+.password-field-wrap {
+  position: relative;
+}
+
+.password-field-wrap input {
+  padding-right: 40px;
+}
+
+.password-toggle-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--s-500);
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.password-toggle-icon:hover {
+  color: var(--accent);
+}
+
 /* ============ ANIMATIONS ============ */
 @keyframes giki-loader-flip {
   0% { transform: perspective(400px) rotateY(0deg) scale(1); }
