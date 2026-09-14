@@ -10,4 +10,5 @@ urlpatterns = [
     path("notifications/clear/", views.clear_all_notifications, name="clear_all_notifications"),
     path("api/fcm/register/", views.register_fcm_token, name="register_fcm_token"),
     path("api/fcm/unregister/", views.unregister_fcm_token, name="unregister_fcm_token"),
+    path("api/notifications/feed/", views.notifications_feed, name="notification_feed"),
 ]

@@ -169,3 +169,28 @@ def firebase_messaging_sw_view(request):
     sw_path = Path(settings.BASE_DIR) / "firebase-messaging-sw.js"
     content = sw_path.read_text(encoding="utf-8")
     return HttpResponse(content, content_type="application/javascript")
+
+
+@login_required
+def notifications_feed(request):
+    from django.urls import reverse
+
+    notifications = request.user.notifications.all()
+    unread_count = notifications.filter(is_read=False).count()
+    notifications = notifications[:5]
+
+    return JsonResponse({
+        "count": unread_count,
+        "items": [
+            {
+                "id": n.id,
+                "title": n.title,
+                "message": n.message,
+                "level": n.level,
+                "link": n.link,
+                "is_read": n.is_read,
+                "read_url": reverse("mark_notification_read", args=[n.pk]),
+            }
+            for n in notifications
+        ],
+    })

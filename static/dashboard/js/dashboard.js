@@ -25,7 +25,6 @@ document.addEventListener('DOMContentLoaded', function () {
     try { localStorage.setItem(COLLAPSE_KEY, collapsed ? '1' : '0'); } catch (e) {}
   }
 
-  // Mobile: slide-in / offcanvas sidebar
   function setNavOpen(open) {
     if (!portal) return;
     portal.classList.toggle('nav-open', open);
@@ -33,9 +32,6 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   function closeNav() { setNavOpen(false); }
 
-  // Desktop/tablet: collapse sidebar to icon-only rail.
-  // `persist` is only true when the user explicitly clicks the toggle —
-  // restoring the saved state on load/resize must never overwrite it.
   function setSidebarCollapsed(collapsed, persist) {
     if (!portal) return;
     portal.classList.toggle('sidebar-collapsed', collapsed);
@@ -43,14 +39,10 @@ document.addEventListener('DOMContentLoaded', function () {
     if (persist) saveCollapsed(collapsed);
   }
 
-  // Restore the user's last choice on every page load (desktop/tablet only —
-  // mobile always shows the full-width offcanvas sidebar regardless of this).
   if (!mobileQuery.matches) {
     setSidebarCollapsed(getSavedCollapsed(), false);
   }
 
-  // Browser back/forward can restore a page from bfcache without re-running
-  // this script from scratch — re-apply the saved state in that case too.
   window.addEventListener('pageshow', function (event) {
     if (event.persisted && !mobileQuery.matches) {
       setSidebarCollapsed(getSavedCollapsed(), false);
@@ -68,17 +60,12 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Click outside (the scrim) closes the mobile offcanvas menu
   if (scrim) scrim.addEventListener('click', closeNav);
 
-  // Esc closes the mobile offcanvas menu
   document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape') closeNav();
   });
 
-  // Crossing the mobile/desktop breakpoint only affects layout, never the
-  // user's saved collapse preference: close the offcanvas menu on mobile,
-  // and re-apply whatever was last saved when back on desktop/tablet.
   function handleBreakpointChange() {
     if (!portal) return;
     portal.classList.remove('nav-open');
@@ -104,11 +91,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Icon-rail tooltips: rendered as a single fixed-position element appended
-  // to <body>, positioned via JS from each item's bounding box. This keeps
-  // the tooltip completely outside the sidebar's own box, so it can never
-  // widen or horizontally scroll the collapsed rail the way a CSS ::after
-  // positioned inside the scrollable nav would.
   var railTooltip = document.createElement('div');
   railTooltip.className = 'rail-tooltip';
   document.body.appendChild(railTooltip);
@@ -129,7 +111,6 @@ document.addEventListener('DOMContentLoaded', function () {
     item.addEventListener('mouseleave', hideRailTooltip);
     item.addEventListener('blur', hideRailTooltip);
   });
-  // Any of these mean the tooltip's position is no longer valid — drop it.
   document.addEventListener('scroll', hideRailTooltip, true);
   window.addEventListener('resize', hideRailTooltip);
   if (toggle) toggle.addEventListener('click', hideRailTooltip);
@@ -145,7 +126,20 @@ document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener('click', function () { dropdown.classList.remove('open'); });
   }
 
-  // Notification dropdown follows the same toggle/click-outside behavior.
+  function getCookie(name) {
+    var value = '; ' + document.cookie;
+    var parts = value.split('; ' + name + '=');
+    return parts.length === 2 ? parts.pop().split(';').shift() : '';
+  }
+  // Exposed so fcm-handler.js's refreshNotificationBell() can reuse the
+  // exact same cookie-reading logic instead of duplicating it.
+  window.getCsrfCookie = getCookie;
+
+  // ---- Notification dropdown: toggle + delegated click handling ----
+  // Delegated (bound to the container, not individual buttons) so it keeps
+  // working after fcm-handler.js's renderNotificationBell() replaces the
+  // dropdown's innerHTML on a real-time push — direct per-button listeners
+  // would be lost the moment the markup gets swapped out.
   var notificationTrigger = document.getElementById('notificationTrigger');
   var notificationDropdown = document.getElementById('notificationDropdown');
   if (notificationTrigger && notificationDropdown) {
@@ -154,100 +148,95 @@ document.addEventListener('DOMContentLoaded', function () {
       var isOpen = notificationDropdown.classList.toggle('open');
       notificationTrigger.setAttribute('aria-expanded', String(isOpen));
     });
-    notificationDropdown.addEventListener('click', function (e) { e.stopPropagation(); });
     document.addEventListener('click', function () {
       notificationDropdown.classList.remove('open');
       notificationTrigger.setAttribute('aria-expanded', 'false');
     });
-  }
 
-  function getCookie(name) {
-    var value = '; ' + document.cookie;
-    var parts = value.split('; ' + name + '=');
-    return parts.length === 2 ? parts.pop().split(';').shift() : '';
-  }
-  document.querySelectorAll('.notification-read[data-read-url]').forEach(function (button) {
-    button.addEventListener('click', function (event) {
-      event.preventDefault();
-      event.stopPropagation();
-      fetch(button.getAttribute('data-read-url'), {
-        method: 'POST',
-        headers: { 'X-CSRFToken': getCookie('csrftoken'), 'X-Requested-With': 'XMLHttpRequest' }
-      }).then(function (response) { return response.json(); }).then(function (data) {
-        if (!data.ok) return;
-        var row = button.closest('.notification-row');
-        if (row) row.classList.remove('unread');
-        button.remove();
-        var badge = document.querySelector('#notificationTrigger .badge-dot');
-        if (badge) {
-          var count = Math.max(0, (parseInt(badge.textContent, 10) || 1) - 1);
-          if (count) badge.textContent = count; else badge.remove();
-        }
-      });
-    });
-  });
+    notificationDropdown.addEventListener('click', function (e) {
+      e.stopPropagation();
 
-  document.getElementById('clearAllNotifications')?.addEventListener('click', function () {
-    const url = this.dataset.clearUrl;
-    fetch(url, {
-      method: 'POST',
-      headers: { 'X-CSRFToken': getCookie('csrftoken') },
-    }).then((response) => {
-      if (response.ok) {
-        document.getElementById('notificationDropdown').innerHTML =
-          '<div class="notification-empty">No new notifications</div>';
-        document.querySelector('.badge-dot')?.remove();
+      var readButton = e.target.closest('.notification-read[data-read-url]');
+      if (readButton) {
+        e.preventDefault();
+        fetch(readButton.getAttribute('data-read-url'), {
+          method: 'POST',
+          headers: { 'X-CSRFToken': getCookie('csrftoken'), 'X-Requested-With': 'XMLHttpRequest' }
+        }).then(function (response) { return response.json(); }).then(function (data) {
+          if (!data.ok) return;
+          var row = readButton.closest('.notification-row');
+          if (row) row.classList.remove('unread');
+          readButton.remove();
+          var badge = document.querySelector('#notificationTrigger .badge-dot');
+          if (badge) {
+            var count = Math.max(0, (parseInt(badge.textContent, 10) || 1) - 1);
+            if (count) badge.textContent = count; else badge.remove();
+          }
+        });
+        return;
+      }
+
+      var clearButton = e.target.closest('#clearAllNotifications');
+      if (clearButton) {
+        fetch(clearButton.dataset.clearUrl, {
+          method: 'POST',
+          headers: { 'X-CSRFToken': getCookie('csrftoken') },
+        }).then(function (response) {
+          if (response.ok) {
+            notificationDropdown.innerHTML = '<div class="notification-empty">No new notifications</div>';
+            document.querySelector('.badge-dot')?.remove();
+          }
+        });
       }
     });
-  });
-
-var helpButton = document.getElementById('stepHelpButton');
-var helpPopover = document.getElementById('stepHelpPopover');
-
-if (helpButton && helpPopover) {
-  function closeStepHelp() {
-    helpPopover.classList.remove('open');
-    helpPopover.setAttribute('aria-hidden', 'true');
-    helpButton.setAttribute('aria-expanded', 'false');
   }
 
-  helpButton.addEventListener('click', function (event) {
-    event.stopPropagation();
+  var helpButton = document.getElementById('stepHelpButton');
+  var helpPopover = document.getElementById('stepHelpPopover');
 
-    var isOpen = helpPopover.classList.contains('open');
-
-    if (isOpen) {
-      closeStepHelp();
-    } else {
-      helpPopover.classList.add('open');
-      helpPopover.setAttribute('aria-hidden', 'false');
-      helpButton.setAttribute('aria-expanded', 'true');
+  if (helpButton && helpPopover) {
+    function closeStepHelp() {
+      helpPopover.classList.remove('open');
+      helpPopover.setAttribute('aria-hidden', 'true');
+      helpButton.setAttribute('aria-expanded', 'false');
     }
-  });
 
-  helpPopover.querySelectorAll('[data-step-help-close]').forEach(function (control) {
-    control.addEventListener('click', closeStepHelp);
-  });
+    helpButton.addEventListener('click', function (event) {
+      event.stopPropagation();
 
-  document.addEventListener('click', function (event) {
-    if (
-      helpPopover.classList.contains('open') &&
-      !helpPopover.contains(event.target) &&
-      !helpButton.contains(event.target)
-    ) {
-      closeStepHelp();
-    }
-  });
+      var isOpen = helpPopover.classList.contains('open');
 
-  document.addEventListener('keydown', function (event) {
-    if (event.key === 'Escape' && helpPopover.classList.contains('open')) {
-      closeStepHelp();
-      helpButton.focus();
-    }
-  });
-}
+      if (isOpen) {
+        closeStepHelp();
+      } else {
+        helpPopover.classList.add('open');
+        helpPopover.setAttribute('aria-hidden', 'false');
+        helpButton.setAttribute('aria-expanded', 'true');
+      }
+    });
 
-  // Animate progress ring + bar from 0 to their data-percent value
+    helpPopover.querySelectorAll('[data-step-help-close]').forEach(function (control) {
+      control.addEventListener('click', closeStepHelp);
+    });
+
+    document.addEventListener('click', function (event) {
+      if (
+        helpPopover.classList.contains('open') &&
+        !helpPopover.contains(event.target) &&
+        !helpButton.contains(event.target)
+      ) {
+        closeStepHelp();
+      }
+    });
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && helpPopover.classList.contains('open')) {
+        closeStepHelp();
+        helpButton.focus();
+      }
+    });
+  }
+
   document.querySelectorAll('[data-percent]').forEach(function (el) {
     var target = parseInt(el.getAttribute('data-percent'), 10) || 0;
     requestAnimationFrame(function () {
@@ -259,7 +248,6 @@ if (helpButton && helpPopover) {
     });
   });
 
-  // Animate the number inside the ring counting up
   document.querySelectorAll('[data-count-to]').forEach(function (el) {
     var target = parseInt(el.getAttribute('data-count-to'), 10) || 0;
     var current = 0;
@@ -271,9 +259,6 @@ if (helpButton && helpPopover) {
     }, 20);
   });
 
-  // ---- Sidebar section collapse: per-section state persistence ----
-  // Only active on desktop (>860px). On mobile the sections are always
-  // expanded and the toggle buttons are visually disabled.
   var SECTION_KEY_PREFIX = 'giki_sec_';
   var sectionPanels = document.querySelectorAll('.sidebar-nav .application-subnav[id]');
 
@@ -281,23 +266,18 @@ if (helpButton && helpPopover) {
     return !mobileQuery.matches;
   }
 
-  // Restore saved states before Bootstrap has a chance to animate anything.
-  // We manipulate classList directly so there's no flicker.
   sectionPanels.forEach(function (panel) {
     var id = panel.id;
     try {
       var saved = localStorage.getItem(SECTION_KEY_PREFIX + id);
       if (saved === '0' && isSectionCollapseActive()) {
-        // Collapsed: remove Bootstrap's 'show' so it starts hidden, no animation.
         panel.classList.remove('show');
-        // Sync aria-expanded on the paired button.
         var btn = document.querySelector('[data-bs-target="#' + id + '"]');
         if (btn) btn.setAttribute('aria-expanded', 'false');
       }
     } catch (e) {}
   });
 
-  // Listen for Bootstrap collapse events to persist state.
   sectionPanels.forEach(function (panel) {
     panel.addEventListener('hide.bs.collapse', function () {
       if (!isSectionCollapseActive()) return;
@@ -308,8 +288,6 @@ if (helpButton && helpPopover) {
     });
   });
 
-  // When crossing the mobile/desktop breakpoint, force all sections visible
-  // on mobile (scrolling is fine there), and restore saved states on desktop.
   var prevBreakpointMobile = mobileQuery.matches;
   function handleSectionBreakpointChange() {
     var nowMobile = mobileQuery.matches;
@@ -319,11 +297,9 @@ if (helpButton && helpPopover) {
       var id = panel.id;
       var btn = document.querySelector('[data-bs-target="#' + id + '"]');
       if (nowMobile) {
-        // Mobile: force open without animation.
         panel.classList.add('show');
         if (btn) btn.setAttribute('aria-expanded', 'true');
       } else {
-        // Desktop: restore saved state.
         try {
           var saved = localStorage.getItem(SECTION_KEY_PREFIX + id);
           var shouldShow = saved !== '0';
@@ -394,7 +370,6 @@ if (helpButton && helpPopover) {
     });
   };
 
-  // Initialize any server-rendered toasts or pending session toasts
   document.querySelectorAll('#toastContainer .toast').forEach(function (toastEl) {
     if (window.bootstrap && window.bootstrap.Toast) {
       var bsToast = window.bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 3500, autohide: true });
@@ -415,5 +390,3 @@ if (helpButton && helpPopover) {
     }
   } catch (e) {}
 });
-
-

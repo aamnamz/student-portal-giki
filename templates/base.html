@@ -378,7 +378,7 @@
     firebase.initializeApp(firebaseConfig);
     window.FCM_VAPID_KEY = "{{ FCM_VAPID_KEY|default:'' }}";
   </script>
-  <script src="{% static 'dashboard/js/fcm-handler.js' %}"></script>
+  <script src="{% static 'dashboard/js/fcm-handler.js' %}?v=5"></script>
   {% block extra_scripts %}{% endblock %}
 </body>
 
