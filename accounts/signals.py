@@ -1,6 +1,6 @@
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
-
+from .models import CustomUser, Profile
 from dashboard.fcm import send_fcm_notification
 
 from .models import CustomUser
@@ -23,3 +23,9 @@ def notify_on_password_change(sender, instance, **kwargs):
             body="Your password was changed by an administrator. If this wasn't you, contact support immediately.",
             level="warning",
         )
+
+
+@receiver(post_save, sender=CustomUser)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.get_or_create(user=instance)

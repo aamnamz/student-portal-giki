@@ -20,3 +20,4 @@ def portal_context(request):
         "notification_count": notifications.filter(is_read=False).count(),
         "recent_notifications": notifications[:8],
     }
+

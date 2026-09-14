@@ -32,7 +32,7 @@ class SignUpForm(StyledFormMixin, UserCreationForm):
         required=True,
         error_messages={"required": "Please select the program you're applying for."},
     )
-    name_validator = RegexValidator(r"^[A-Za-z]+(?:[-'][A-Za-z]+)*$", "Use letters only.")
+    name_validator = RegexValidator(r"^[A-Za-z]+(?:[ -'][A-Za-z]+)*$","Use letters only.")
     full_name = forms.CharField(max_length=150, label="Full name",validators=[name_validator])
     email = forms.EmailField(required=True)
     agree_terms = forms.BooleanField(
@@ -51,15 +51,22 @@ class SignUpForm(StyledFormMixin, UserCreationForm):
 
     def save(self, commit=True):
         user = super().save(commit=False)
+        user.username = user.email
+
+        full_name = self.cleaned_data["full_name"].strip()
+        name_parts = full_name.split(maxsplit=1)
+
         user.email = self.cleaned_data["email"]
-        user.first_name = self.cleaned_data["first_name"]
-        user.last_name = self.cleaned_data["last_name"]
+        user.first_name = name_parts[0]
+        user.last_name = name_parts[1] if len(name_parts) > 1 else ""
+
         if commit:
             user.save()
+
             profile, _ = Profile.objects.get_or_create(user=user)
-            profile.phone = self.cleaned_data.get("phone_number", "")
             profile.program = self.cleaned_data.get("program", "")
-            profile.save(update_fields=["phone", "program"])
+            profile.save(update_fields=["program"])
+
         return user
 
 

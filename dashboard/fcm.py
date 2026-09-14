@@ -4,8 +4,7 @@ import firebase_admin
 from django.conf import settings
 from firebase_admin import credentials, messaging
 from firebase_admin.exceptions import NotFoundError
-from .models import FCMDeviceToken, notify   
-from .models import FCMDeviceToken
+from .models import FCMDeviceToken, notify 
 
 logger = logging.getLogger(__name__)
 

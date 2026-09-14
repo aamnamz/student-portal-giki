@@ -1,4 +1,6 @@
 import base64
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth import login
@@ -32,7 +34,7 @@ def signup(request):
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)
+            login(request, user, backend="django.contrib.auth.backends.ModelBackend")
             return redirect("dashboard")
     else:
         form = SignUpForm()
@@ -75,28 +77,45 @@ def change_password_view(request):
     error = None
 
     if request.method == "POST":
-        current_password = request.POST.get("current_password")
-        new_password = request.POST.get("new_password")
-        confirm_password = request.POST.get("confirm_password")
+        current_password = request.POST.get("current_password", "")
+        new_password = request.POST.get("new_password", "")
+        confirm_password = request.POST.get("confirm_password", "")
 
         if not request.user.check_password(current_password):
             error = "Your current password is incorrect."
+
         elif new_password != confirm_password:
             error = "The new passwords do not match."
+
         elif not new_password:
             error = "Please enter a new password."
-        else:
-            request.user.set_password(new_password)
-            request.user.save()
-            update_session_auth_hash(request, request.user)
-            messages.success(request, "Password changed successfully.")
-            success = True
 
-    return render(request, "accounts/change_password.html", {
-        "active_nav": "settings",
-        "success": success,
-        "error": error,
-    })
+        else:
+            try:
+                validate_password(new_password, request.user)
+            except ValidationError as exc:
+                error = " ".join(exc.messages)
+            else:
+                request.user.set_password(new_password)
+                request.user.save(update_fields=["password"])
+
+                update_session_auth_hash(request, request.user)
+
+                messages.success(
+                    request,
+                    "Password changed successfully."
+                )
+                success = True
+
+    return render(
+        request,
+        "accounts/change_password.html",
+        {
+            "active_nav": "settings",
+            "success": success,
+            "error": error,
+        },
+    )
 
 
 @login_required
@@ -117,4 +136,4 @@ def select_program_view(request):
         else:
             error = "Please select either MS or PhD to continue."
 
-    return render(request, "accounts/select_program.html", {"error": error})
+    return render(request, "accounts/select_program.html", {"error": error})
