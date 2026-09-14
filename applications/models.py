@@ -415,6 +415,46 @@ class Application(models.Model):
         default=False,
         help_text="Marked true once the applicant has attended their interview.",
     )
+
+    # --- Admissions-outcome tracking (notification engine) -----------------
+    ENTRY_TEST_RESULT_CHOICES = [
+        ("not_taken", "Not Taken"),
+        ("pending", "Pending"),
+        ("passed", "Passed"),
+        ("failed", "Failed"),
+    ]
+    INTERVIEW_STATUS_CHOICES = [
+        ("not_scheduled", "Not Scheduled"),
+        ("scheduled", "Scheduled"),
+        ("attended", "Attended"),
+        ("missed", "Missed"),
+    ]
+    FINAL_DECISION_CHOICES = [
+        ("pending", "Pending"),
+        ("accepted", "Accepted"),
+        ("rejected", "Rejected"),
+        ("waitlisted", "Waitlisted"),
+    ]
+
+    entry_test_result = models.CharField(
+        max_length=20, choices=ENTRY_TEST_RESULT_CHOICES, default="not_taken",
+    )
+    interview_status = models.CharField(
+        max_length=20, choices=INTERVIEW_STATUS_CHOICES, default="not_scheduled",
+    )
+    final_decision = models.CharField(
+        max_length=20, choices=FINAL_DECISION_CHOICES, default="pending",
+    )
+    test_score = models.DecimalField(
+        max_digits=6, decimal_places=2, null=True, blank=True,
+    )
+    interview_score = models.DecimalField(
+        max_digits=6, decimal_places=2, null=True, blank=True,
+    )
+    test_result_published_at = models.DateTimeField(null=True, blank=True)
+    decision_published_at = models.DateTimeField(null=True, blank=True)
+    # -------------------------------------------------------------------
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     submitted_at = models.DateTimeField(null=True, blank=True)

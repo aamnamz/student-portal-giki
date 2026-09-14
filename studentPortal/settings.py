@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "dashboard",
     "accounts",
     "applications",
+    "notifications_engine",
 ]
 
 SITE_ID = 1
